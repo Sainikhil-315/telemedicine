@@ -15,7 +15,7 @@ const router = express.Router();
 
 const { protect, authorize } = require('../../middleware/auth');
 const advancedResults = require('../../middleware/advancedResults');
-
+router.get('/', getDoctors);
 router
   .route('/')
   .get(

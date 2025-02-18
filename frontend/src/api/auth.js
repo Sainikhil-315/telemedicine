@@ -1,36 +1,59 @@
-import apiClient from './index';
+// api/auth.js
+import axios from 'axios';
 
-// Login user
+const API_URL = 'http://localhost:5000/api';
+
 export const login = async (email, password) => {
-  const response = await apiClient.post('/auth/login', { email, password });
-  if (response.data.token) {
-    localStorage.setItem('token', response.data.token);
-  }
-  return response.data.user;
-};
-
-// Register user
-export const register = async (userData) => {
-  const response = await apiClient.post('/auth/register', userData);
-  if (response.data.token) {
-    localStorage.setItem('token', response.data.token);
-  }
-  return response.data.user;
-};
-
-// Logout user
-export const logout = async () => {
-  localStorage.removeItem('token');
-  await apiClient.post('/auth/logout');
-};
-
-// Check auth status
-export const checkAuthStatus = async () => {
   try {
-    const response = await apiClient.get('/auth/me');
-    return response.data.user;
+    const response = await axios.post(`${API_URL}/auth/login`, {
+      email,
+      password
+    });
+    
+    // Log the response for debugging
+    console.log('API Response:', response.data);
+    
+    return response.data;
   } catch (error) {
-    localStorage.removeItem('token');
-    return null;
+    console.error('API Error Details:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Login failed');
+  }
+};
+
+export const register = async (userData) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/register`, userData);
+    
+    // Log the response for debugging
+    console.log('API Response:', response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('API Error Details:', error.response?.data);
+    throw new Error(error.response?.data?.message || 'Registration failed');
+  }
+};
+
+export const checkAuthStatus = async (token) => {
+  try {
+    const response = await axios.get(`${API_URL}/auth/status`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Auth Status Check Error:', error.response?.data);
+    throw error;
+  }
+};
+
+export const logout = async () => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/logout`);
+    return response.data;
+  } catch (error) {
+    console.error('Logout Error:', error.response?.data);
+    throw error;
   }
 };

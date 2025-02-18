@@ -4,11 +4,35 @@ const Availability = require('../models/Availability');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/async');
 
+
 // @desc    Get all doctors
 // @route   GET /api/doctors
 // @access  Public
 exports.getDoctors = asyncHandler(async (req, res, next) => {
-  res.status(200).json(res.advancedResults);
+  const query = {};
+
+  // Filter by doctor's name (if provided)
+  if (req.query.name) {
+    query.name = { $regex: req.query.name, $options: 'i' }; // 'i' for case-insensitive matching
+  }
+
+  // Filter by specialty (if provided)
+  if (req.query.specialty) {
+    query.specialty = { $regex: req.query.specialty, $options: 'i' }; // Case-insensitive search
+  }
+
+  // Find doctors with the applied filters
+  const doctors = await Doctor.find(query);
+
+  if (!doctors || doctors.length === 0) {
+    return next(new ErrorResponse('No doctors found matching the criteria', 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    count: doctors.length,
+    data: doctors
+  });
 });
 
 // @desc    Get single doctor

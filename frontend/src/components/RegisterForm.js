@@ -16,21 +16,21 @@ const RegisterForm = () => {
     phone: '',
     agreeToTerms: false
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
-  
+
   const { register } = useAuth();
   const navigate = useNavigate();
-  
+
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target;
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
-    
+
     // Clear validation error for this field
     if (validationErrors[name]) {
       setValidationErrors({
@@ -39,64 +39,64 @@ const RegisterForm = () => {
       });
     }
   };
-  
+
   const validateForm = () => {
     const errors = {};
-    
+
     if (!formData.firstName.trim()) {
       errors.firstName = 'First name is required';
     }
-    
+
     if (!formData.lastName.trim()) {
       errors.lastName = 'Last name is required';
     }
-    
+
     if (!formData.email) {
       errors.email = 'Email is required';
     } else if (!isValidEmail(formData.email)) {
       errors.email = 'Please enter a valid email address';
     }
-    
+
     if (!formData.password) {
       errors.password = 'Password is required';
     } else if (!isStrongPassword(formData.password)) {
       errors.password = 'Password must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 number';
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match';
     }
-    
+
     if (!formData.gender) {
       errors.gender = 'Please select your gender';
     }
-    
+
     if (!formData.dateOfBirth) {
       errors.dateOfBirth = 'Date of birth is required';
     }
-    
+
     if (!formData.phone) {
       errors.phone = 'Phone number is required';
     }
-    
+
     if (!formData.agreeToTerms) {
       errors.agreeToTerms = 'You must agree to the Terms and Privacy Policy';
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       const userData = {
         name: `${formData.firstName} ${formData.lastName}`,
@@ -106,7 +106,7 @@ const RegisterForm = () => {
         dateOfBirth: formData.dateOfBirth,
         phone: formData.phone
       };
-      
+
       await register(userData);
       navigate('/dashboard');
     } catch (err) {
@@ -115,13 +115,13 @@ const RegisterForm = () => {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="register-form">
       <h2 className="mb-4 text-center">Create Your Account</h2>
-      
+
       {error && <Alert variant="danger">{error}</Alert>}
-      
+
       <Form onSubmit={handleSubmit}>
         <Row>
           <Col md={6}>
@@ -140,7 +140,7 @@ const RegisterForm = () => {
               </Form.Control.Feedback>
             </Form.Group>
           </Col>
-          
+
           <Col md={6}>
             <Form.Group className="mb-3" controlId="lastName">
               <Form.Label>Last Name</Form.Label>
@@ -158,7 +158,7 @@ const RegisterForm = () => {
             </Form.Group>
           </Col>
         </Row>
-        
+
         <Form.Group className="mb-3" controlId="email">
           <Form.Label>Email Address</Form.Label>
           <Form.Control
@@ -173,7 +173,7 @@ const RegisterForm = () => {
             {validationErrors.email}
           </Form.Control.Feedback>
         </Form.Group>
-        
+
         <Row>
           <Col md={6}>
             <Form.Group className="mb-3" controlId="password">
@@ -191,7 +191,7 @@ const RegisterForm = () => {
               </Form.Control.Feedback>
             </Form.Group>
           </Col>
-          
+
           <Col md={6}>
             <Form.Group className="mb-3" controlId="confirmPassword">
               <Form.Label>Confirm Password</Form.Label>
@@ -209,7 +209,7 @@ const RegisterForm = () => {
             </Form.Group>
           </Col>
         </Row>
-        
+
         <Row>
           <Col md={6}>
             <Form.Group className="mb-3" controlId="gender">
@@ -231,7 +231,7 @@ const RegisterForm = () => {
               </Form.Control.Feedback>
             </Form.Group>
           </Col>
-          
+
           <Col md={6}>
             <Form.Group className="mb-3" controlId="dateOfBirth">
               <Form.Label>Date of Birth</Form.Label>
@@ -249,7 +249,7 @@ const RegisterForm = () => {
             </Form.Group>
           </Col>
         </Row>
-        
+
         <Form.Group className="mb-3" controlId="phone">
           <Form.Label>Phone Number</Form.Label>
           <Form.Control
@@ -264,7 +264,35 @@ const RegisterForm = () => {
             {validationErrors.phone}
           </Form.Control.Feedback>
         </Form.Group>
-        
+        <Form.Group className="mb-3" controlId="role">
+          <Form.Label>Are you a doctor or a patient?</Form.Label>
+          <Form.Select name="role" value={formData.role} onChange={handleChange} required>
+            <option value="">Select Role</option>
+            <option value="patient">Patient</option>
+            <option value="doctor">Doctor</option>
+          </Form.Select>
+        </Form.Group>
+
+        {/* Show doctor-specific fields only if role is 'doctor' */}
+        {formData.role === 'doctor' && (
+          <>
+            <Form.Group className="mb-3" controlId="specialization">
+              <Form.Label>Specialization</Form.Label>
+              <Form.Control type="text" name="specialization" value={formData.specialization}/>
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="experience">
+              <Form.Label>Years of Experience</Form.Label>
+              <Form.Control type="number" name="experience" value={formData.experience} required />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="consultationFee">
+              <Form.Label>Consultation Fee</Form.Label>
+              <Form.Control type="number" name="consultationFee" value={formData.consultationFee} required />
+            </Form.Group>
+          </>
+        )}
+
         <Form.Group className="mb-4" controlId="agreeToTerms">
           <Form.Check
             type="checkbox"
@@ -289,7 +317,7 @@ const RegisterForm = () => {
             {validationErrors.agreeToTerms}
           </Form.Control.Feedback>
         </Form.Group>
-        
+
         <Button
           variant="primary"
           type="submit"
@@ -313,7 +341,7 @@ const RegisterForm = () => {
           )}
         </Button>
       </Form>
-      
+
       <div className="mt-4 text-center">
         <p className="mb-0">
           Already have an account?{' '}

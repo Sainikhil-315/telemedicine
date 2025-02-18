@@ -1,53 +1,131 @@
-
-// DoctorsPage.js
 import React, { useState, useEffect } from 'react';
-import DoctorList from '../components/DoctorsList';
+import { Container, Row, Col, Form, InputGroup } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import DoctorList from '../components/DoctorsList';
+import { searchDoctors, getAllDoctors } from '../api/doctors'; // Import getAllDoctors
 
 const DoctorsPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [specialtyFilter, setSpecialtyFilter] = useState('');
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    specialty: '',
+    // sortBy: 'rating'
+  });
+
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchDoctors();
+  }, [filters]);
+
+  const fetchDoctors = async () => {
+    try {
+      setLoading(true);
+
+      // If no filters are specified, get all doctors
+      let response;
+      if (!filters.searchTerm && !filters.specialty) {
+        response = await getAllDoctors();
+        console.log("response if no filters ",response);
+      } else {
+        response = await searchDoctors({
+          search: filters.searchTerm,
+          specialty: filters.specialty,
+          // sortBy: filters.sortBy
+        },console.log("response if filter applied: ",response));
+      }
+      setDoctors(response.data || []);
+      console.log("Doctors in response: ", doctors)
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching doctors:', err);
+      setError('Failed to fetch doctors. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleDoctorSelect = (doctorId) => {
+    navigate(`/appointments/new/${doctorId}`);
+  };
+
   return (
-    <div className="container-fluid py-4">
-      <div className="row mb-4">
-        <div className="col">
-          <h2>Find a Doctor</h2>
-        </div>
-      </div>
+    <Container fluid className="py-4">
+      <Row className="mb-4">
+        <Col>
+          <h2 className="mb-4">Find a Doctor</h2>
+          <Row className="g-3">
+            <Col md={6}>
+              <InputGroup>
+                <InputGroup.Text>
+                  <i className="fas fa-search"></i>
+                </InputGroup.Text>
+                <Form.Control
+                  type="text"
+                  name="searchTerm"
+                  placeholder="Search doctors by name..."
+                  value={filters.searchTerm}
+                  onChange={handleFilterChange}
+                />
+              </InputGroup>
+            </Col>
 
-      <div className="row mb-4">
-        <div className="col-md-8">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search doctors by name or specialty..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="col-md-4">
-          <select
-            className="form-select"
-            value={specialtyFilter}
-            onChange={(e) => setSpecialtyFilter(e.target.value)}
-          >
-            <option value="">All Specialties</option>
-            <option value="general">General Physician</option>
-            <option value="cardiology">Cardiologist</option>
-            <option value="dermatology">Dermatologist</option>
-            {/* Add more specialties */}
-          </select>
-        </div>
-      </div>
+            <Col md={3}>
+              <Form.Select
+                name="specialty"
+                value={filters.specialty}
+                onChange={handleFilterChange}
+              >
+                <option value="">All Specialties</option>
+                <option value="General Physician">General Physician</option>
+                <option value="cardiologist">Cardiologist</option>
+                <option value="dermatologist">Dermatologist</option>
+                <option value="neurologist">Neurologist</option>
+                <option value="psychiatrist">Psychiatrist</option>
+                <option value="pediatrician">Pediatrician</option>
+                <option value="orthopedic">Orthopedic</option>
+              </Form.Select>
+            </Col>
 
-      <DoctorList 
-        searchTerm={searchTerm}
-        specialtyFilter={specialtyFilter}
-        onDoctorSelect={(doctorId) => navigate(`/appointments/new/${doctorId}`)}
+            <Col md={3}>
+              {/* <Form.Select
+                name="sortBy"
+                value={filters.sortBy}
+                onChange={handleFilterChange}
+              >
+                <option value="rating">Highest Rated</option>
+                <option value="experience">Most Experienced</option>
+                <option value="price_low">Price: Low to High</option>
+                <option value="price_high">Price: High to Low</option>
+              </Form.Select> */}
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
+
+      <DoctorList
+        doctors={doctors}
+        loading={loading}
+        onDoctorSelect={handleDoctorSelect}
       />
-    </div>
+    </Container>
   );
 };
+
 export default DoctorsPage;

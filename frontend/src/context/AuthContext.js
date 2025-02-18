@@ -13,61 +13,88 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Check if user is already logged in
+  // Check authentication status when the component mounts
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const userData = await checkAuthStatus();
+        const token = localStorage.getItem('authToken');
+        
+        if (!token) {
+          setIsAuthenticated(false);
+          setLoading(false);
+          return;
+        }
+
+        // Verify token with backend
+        const userData = await checkAuthStatus(token);
+        
         if (userData) {
           setCurrentUser(userData);
           setIsAuthenticated(true);
-        } 
+        } else {
+          // Clear invalid token
+          localStorage.removeItem('authToken');
+          setIsAuthenticated(false);
+        }
       } catch (err) {
         console.error("Auth check failed:", err);
+        localStorage.removeItem('authToken');
+        setIsAuthenticated(false);
       } finally {
         setLoading(false);
       }
     };
-    
+
     checkAuth();
   }, []);
 
-  // Login function
   const handleLogin = async (email, password) => {
     setError(null);
     try {
       const userData = await login(email, password);
-      setCurrentUser(userData);
-      setIsAuthenticated(true);
-      return userData;
+      
+      if (userData && userData.token) {
+        localStorage.setItem('authToken', userData.token);
+        setCurrentUser(userData.user || userData);
+        setIsAuthenticated(true);
+        return userData;
+      } else {
+        throw new Error('No token received from server');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.message || 'Login failed');
       throw err;
     }
   };
 
-  // Register function
-  const handleRegister = async (userData) => {
-    setError(null);
-    try {
-      const newUser = await register(userData);
-      setCurrentUser(newUser);
-      setIsAuthenticated(true);
-      return newUser;
-    } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
-      throw err;
-    }
-  };
-
-  // Logout function
   const handleLogout = async () => {
     try {
       await logout();
-      setCurrentUser(null);
-      setIsAuthenticated(false);
     } catch (err) {
       console.error("Logout failed:", err);
+    } finally {
+      localStorage.removeItem('authToken');
+      setCurrentUser(null);
+      setIsAuthenticated(false);
+    }
+  };
+
+  const handleRegister = async (userData) => {
+    setError(null);
+    try {
+      const response = await register(userData);
+      
+      if (response && response.token) {
+        localStorage.setItem('authToken', response.token);
+        setCurrentUser(response.user || response);
+        setIsAuthenticated(true);
+        return response;
+      } else {
+        throw new Error('No token received from server');
+      }
+    } catch (err) {
+      setError(err.message || 'Registration failed');
+      throw err;
     }
   };
 

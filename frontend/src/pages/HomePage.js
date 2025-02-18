@@ -1,10 +1,12 @@
 // HomePage.js
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const HomePage = () => {
   const navigate = useNavigate();
-
+  const { isAuthenticated } = useAuth();
+  console.log("Is auth : ",isAuthenticated)
   return (
     <div className="container-fluid">
       <div className="row min-vh-100">
@@ -18,7 +20,7 @@ const HomePage = () => {
             <div className="d-grid gap-3 d-md-flex">
               <button 
                 className="btn btn-primary btn-lg"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/Dashboard')}
               >
                 Get Started
               </button>

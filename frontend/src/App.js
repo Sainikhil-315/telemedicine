@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
 // Components
@@ -17,10 +17,20 @@ import ProfilePage from './pages/ProfilePage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/auth" />;
-};
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
+  if (loading) {
+    return <div>Loading...</div>; // Or your loading component
+  }
+
+  if (!isAuthenticated) {
+    // Save the attempted URL for redirecting after login
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
 function App() {
   return (
     <Router>
@@ -35,6 +45,7 @@ function App() {
                 <DashboardPage />
               </ProtectedRoute>
             } />
+
             <Route path="/chat" element={
               <ProtectedRoute>
                 <ChatPage />
