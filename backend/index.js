@@ -19,6 +19,17 @@ connectDB();
 
 const app = express();
 
+// CORS configuration - should be early in the middleware chain
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Enable pre-flight for all routes
+app.options('*', cors());
+
 // Body parser
 app.use(express.json());
 
@@ -35,15 +46,24 @@ app.use(helmet()); // Set security headers
 app.use(mongoSanitize()); // Sanitize data
 app.use(hpp()); // Prevent HTTP param pollution
 
-// Rate limiting
+// Rate limiting - adjust for development
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 mins
-  max: 100 // 100 requests per 10 mins
+  max: process.env.NODE_ENV === 'development' ? 1000 : 100, // Higher limit in development
+  message: 'Too many requests from this IP, please try again later'
 });
-app.use(limiter);
 
-// Enable CORS
-app.use(cors());
+// Apply rate limiting selectively - skip for auth routes in development
+if (process.env.NODE_ENV === 'development') {
+  app.use('/api', (req, res, next) => {
+    if (req.path.startsWith('/auth/')) {
+      return next(); // Skip rate limiting for auth routes
+    }
+    limiter(req, res, next);
+  });
+} else {
+  app.use(limiter); // Apply to all routes in production
+}
 
 // Mount routes
 app.use('/', routes);

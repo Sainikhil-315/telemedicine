@@ -72,20 +72,14 @@ const Header = () => {
             {isAuthenticated ? (
               <Dropdown>
                 <Dropdown.Toggle variant="light" id="profile-dropdown" className="d-flex align-items-center">
-                  {currentUser.profilePicture ? (
-                    <img 
-                      src={currentUser.profilePicture} 
-                      alt="Profile" 
-                      className="rounded-circle me-2"
-                      width="30"
-                      height="30"
-                    />
+                  {currentUser ? (
+                    <i class="fa-solid fa-address-card"></i>
                   ) : (
                     <div className="avatar rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style={{width: '30px', height: '30px'}}>
-                      {getInitials(currentUser.name)}
+                      {/* {getInitials(currentUser.name)} */}
                     </div>
                   )}
-                  <span className="d-none d-md-inline">{currentUser.name}</span>
+                  {/* <span className="d-none d-md-inline">{currentUser.name}</span> */}
                 </Dropdown.Toggle>
                 
                 <Dropdown.Menu align="end">

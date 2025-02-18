@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
         if (userData) {
           setCurrentUser(userData);
           setIsAuthenticated(true);
-        }
+        } 
       } catch (err) {
         console.error("Auth check failed:", err);
       } finally {
