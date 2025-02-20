@@ -22,13 +22,13 @@ exports.protect = asyncHandler(async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('name email username role');
+    req.user = await User.findById(decoded.id).select('name email username role phone');
 
     if (!req.user || !req.user.username) {
-      return next(new ErrorResponse('Username is required', 400));
+      return next(new ErrorResponse('Username is required in auth', 400));
     }
 
-    console.log('Authenticated User:', req.user);
+    // console.log('Authenticated User:', req.user);
     next();
   } catch (err) {
     return next(new ErrorResponse('Not authorized to access this route', 401));

@@ -25,8 +25,13 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  username:{
+    type: String,
+    required: [true, "please enter a username"],
+    unique: true
+  },
   phone : {
-    type: Number,
+    type: String,
     required: true
   },
 

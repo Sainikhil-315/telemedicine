@@ -8,6 +8,8 @@ const doctors = require('./api/doctors');
 const appointments = require('./api/appointments');
 const notifications = require('./api/notifications');
 
+
+  
 // Mount routers
 router.use('/api/auth', auth);
 router.use('/api/users', users);

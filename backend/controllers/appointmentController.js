@@ -41,11 +41,7 @@ exports.getAppointment = asyncHandler(async (req, res, next) => {
     })
     .populate({
       path: 'doctor',
-      select: 'specialization consultationFee',
-      populate: {
-        path: 'user',
-        select: 'name email'
-      }
+      select: 'specialization consultationFee'
     });
 
   if (!appointment) {
@@ -79,7 +75,7 @@ exports.getAppointment = asyncHandler(async (req, res, next) => {
 // @access  Private
 
 exports.createAppointment = asyncHandler(async (req, res, next) => {
-  console.log("User Data:", req.user);  // Debugging
+  // console.log("User Data:", req.user);  // Debugging
 
   if (!req.user) {
     return next(new ErrorResponse("User not authenticated", 401));
@@ -87,9 +83,10 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
 
   req.body.patient = req.user.id;
   req.body.username = req.user.username;
-  console.log("User:", req.user);
-  console.log("User ID:", req.user?.id);
-  console.log("User Email:", req.user?.email);
+ 
+  // console.log("User:", req.user);
+  // console.log("User ID:", req.user?.id);
+  // console.log("User Email:", req.user?.email);
 
   const doctor = await Doctor.findById(req.body.doctor);
   if (!doctor) {
@@ -111,6 +108,7 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
     );
   }
 
+    console.log("Req body : ",req.body)
   const appointment = await Appointment.create(req.body);
 
   // // Send notification to the doctor
@@ -127,28 +125,36 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
     deliveryMethod: 'all'
   });
 
-  // // Send email notification to the patient
-  // if (req.user.email) {
-  //   sendAppointmentEmail({
-  //     email: req.user.email,
-  //     subject: 'Appointment Confirmation',
-  //     message: `Your appointment with Dr. ${doctor.name} has been scheduled for ${new Date(req.body.date).toLocaleDateString()} at ${req.body.startTime}`
-  //   });
-  // }
-
-  // Send SMS notification to the patient if a phone number exists
-  if (req.user.phone) {
-    sendAppointmentSMS({
-      to: req.user.phone,
-      body: `Your appointment with Dr. ${doctor.name} has been scheduled for ${new Date(req.body.date).toLocaleDateString()} at ${req.body.startTime}`
-    });
+  try {
+    if (req.user.email) {
+      console.log("Hello email is redirected");
+      await sendAppointmentEmail({
+        email: req.user.email,
+        subject: 'Appointment Confirmation',
+        message: `Your appointment with Dr. ${doctor.name} has been scheduled for ${new Date(req.body.date).toLocaleDateString()} at ${req.body.startTime}`
+      });
+    }
+  } catch (error) {
+    console.error("Error sending email:", error);
   }
+  
+  try {
+    if (req.user.phone) {
+      console.log("Hello message is redirected");
+      await sendAppointmentSMS({
+        to: req.user.phone,
+        body: `Your appointment with Dr. ${doctor.name} has been scheduled for ${new Date(req.body.date).toLocaleDateString()} at ${req.body.startTime}`
+      });
+    }
+  } catch (error) {
+    console.error("Error sending SMS:", error);
+  }
+  
 
   res.status(201).json({
     success: true,
     data: appointment
   });
-  console.log("Sms sender")
 });
 
 
@@ -251,25 +257,25 @@ exports.deleteAppointment = asyncHandler(async (req, res, next) => {
   }
 
   // Check if it's at least 24 hours before the appointment
-  const appointmentTime = new Date(appointment.date);
-  const now = new Date();
-  const diffHours = (appointmentTime - now) / (1000 * 60 * 60);
+  // const appointmentTime = new Date(appointment.date);
+  // const now = new Date();
+  // const diffHours = (appointmentTime - now) / (1000 * 60 * 60);
 
-  if (diffHours < 24) {
-    return next(
-      new ErrorResponse(
-        `Cannot cancel appointment with less than 24 hours notice`,
-        400
-      )
-    );
-  }
+  // if (diffHours < 24) {
+  //   return next(
+  //     new ErrorResponse(
+  //       `Cannot cancel appointment with less than 24 hours notice`,
+  //       400
+  //     )
+  //   );
+  // }
 
-  await appointment.remove();
+  await appointment.deleteOne();
 
   // Notify doctor about cancellation
   const doctor = await Doctor.findById(appointment.doctor);
   await Notification.create({
-    recipient: doctor.user,
+    recipient: doctor._id,
     sender: req.user.id,
     type: 'appointment',
     title: 'Appointment Cancelled',
@@ -283,6 +289,6 @@ exports.deleteAppointment = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    data: {}
+    message: "Appointment deleted successfully"
   });
 });
