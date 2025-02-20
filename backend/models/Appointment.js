@@ -12,7 +12,7 @@ const AppointmentSchema = new mongoose.Schema({
     required: true
   },
   date: {
-    type: Date,
+    type: Date, 
     required: [true, 'Please specify appointment date']
   },
   startTime: {

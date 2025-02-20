@@ -77,11 +77,20 @@ exports.getAppointment = asyncHandler(async (req, res, next) => {
 // @desc    Create new appointment
 // @route   POST /api/appointments
 // @access  Private
-exports.createAppointment = asyncHandler(async (req, res, next) => {
-  // Add patient from JWT token
-  req.body.patient = req.user.id;
 
-  // Check if doctor exists
+exports.createAppointment = asyncHandler(async (req, res, next) => {
+  console.log("User Data:", req.user);  // Debugging
+
+  if (!req.user) {
+    return next(new ErrorResponse("User not authenticated", 401));
+  }
+
+  req.body.patient = req.user.id;
+  req.body.username = req.user.username;
+  console.log("User:", req.user);
+  console.log("User ID:", req.user?.id);
+  console.log("User Email:", req.user?.email);
+
   const doctor = await Doctor.findById(req.body.doctor);
   if (!doctor) {
     return next(
@@ -89,7 +98,6 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // Check if the selected time slot is available
   const isAvailable = await isSlotAvailable(
     req.body.doctor,
     req.body.date,
@@ -105,9 +113,9 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
 
   const appointment = await Appointment.create(req.body);
 
-  // Create notification for doctor
-  await Notification.create({
-    recipient: doctor.user,
+  // // Send notification to the doctor
+  const notification = await Notification.create({
+    recipient: doctor._id, // Correct reference to the doctor
     sender: req.user.id,
     type: 'appointment',
     title: 'New Appointment',
@@ -119,18 +127,20 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
     deliveryMethod: 'all'
   });
 
-  // Send email notification
-  sendAppointmentEmail({
-    email: req.user.email,
-    subject: 'Appointment Confirmation',
-    message: `Your appointment with Dr. ${doctor.user.name} has been scheduled for ${new Date(req.body.date).toLocaleDateString()} at ${req.body.startTime}`
-  });
+  // // Send email notification to the patient
+  // if (req.user.email) {
+  //   sendAppointmentEmail({
+  //     email: req.user.email,
+  //     subject: 'Appointment Confirmation',
+  //     message: `Your appointment with Dr. ${doctor.name} has been scheduled for ${new Date(req.body.date).toLocaleDateString()} at ${req.body.startTime}`
+  //   });
+  // }
 
-  // Send SMS notification if phone number exists
+  // Send SMS notification to the patient if a phone number exists
   if (req.user.phone) {
     sendAppointmentSMS({
       to: req.user.phone,
-      body: `Your appointment with Dr. ${doctor.user.name} has been scheduled for ${new Date(req.body.date).toLocaleDateString()} at ${req.body.startTime}`
+      body: `Your appointment with Dr. ${doctor.name} has been scheduled for ${new Date(req.body.date).toLocaleDateString()} at ${req.body.startTime}`
     });
   }
 
@@ -138,7 +148,9 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
     success: true,
     data: appointment
   });
+  console.log("Sms sender")
 });
+
 
 // @desc    Update appointment
 // @route   PUT /api/appointments/:id
@@ -152,7 +164,6 @@ exports.updateAppointment = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // Make sure user is appointment owner or doctor
   const doctor = await Doctor.findById(appointment.doctor);
   if (
     appointment.patient.toString() !== req.user.id &&
@@ -167,7 +178,6 @@ exports.updateAppointment = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // If changing date/time, check availability
   if (req.body.date || req.body.startTime || req.body.endTime) {
     const isAvailable = await isSlotAvailable(
       appointment.doctor,
@@ -189,7 +199,6 @@ exports.updateAppointment = asyncHandler(async (req, res, next) => {
     runValidators: true
   });
 
-  // Create notification about update
   if (req.body.status) {
     let recipient = doctor.user;
     if (req.user.id === doctor.user.toString()) {

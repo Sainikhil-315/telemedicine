@@ -13,6 +13,7 @@ const transporter = nodemailer.createTransport({
 
 // Send appointment confirmation email
 exports.sendAppointmentEmail = async (options) => {
+  console.log(options);
   const message = {
     from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`,
     to: options.email,

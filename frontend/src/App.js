@@ -14,6 +14,7 @@ import ChatPage from './pages/ChatPage';
 import DoctorsPage from './pages/DoctorsPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import ProfilePage from './pages/ProfilePage';
+import AppointmentForm from './components/AppointmentForm';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -49,6 +50,11 @@ function App() {
             <Route path="/chat" element={
               <ProtectedRoute>
                 <ChatPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/appointment/:doctorId" element={
+              <ProtectedRoute>
+                <AppointmentForm />
               </ProtectedRoute>
             } />
             <Route path="/doctors" element={

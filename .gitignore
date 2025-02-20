@@ -4,3 +4,4 @@ backend/node_modules
 venv
 ai-serivice/venv
 backend/.env
+frontend/.env

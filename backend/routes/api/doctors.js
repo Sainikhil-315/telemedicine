@@ -1,41 +1,45 @@
 const express = require('express');
 const {
-  getDoctors,
-  getDoctor,
-  createDoctor,
-  updateDoctor,
-  deleteDoctor,
-  addAvailability,
-  getAvailabilities
-} = require('../../controllers/doctorController');
+  getAppointments,
+  getAppointment,
+  createAppointment,
+  updateAppointment,
+  deleteAppointment
+} = require('../../controllers/appointmentController');
 
-const Doctor = require('../../models/Doctor');
+const Appointment = require('../../models/Appointment');
 
 const router = express.Router();
 
 const { protect, authorize } = require('../../middleware/auth');
 const advancedResults = require('../../middleware/advancedResults');
-router.get('/', getDoctors);
+
 router
   .route('/')
   .get(
-    advancedResults(Doctor, {
-      path: 'user',
-      select: 'name email'
-    }),
-    getDoctors
+    protect,
+    advancedResults(Appointment, [
+      {
+        path: 'patient',
+        select: 'name email phone'
+      },
+      {
+        path: 'doctor',
+        select: 'specialization consultationFee',
+        populate: {
+          path: 'user',
+          select: 'name email'
+        }
+      }
+    ]),
+    getAppointments
   )
-  .post(protect, authorize('doctor'), createDoctor);
+  .post(protect, authorize('patient'), createAppointment);
 
 router
   .route('/:id')
-  .get(getDoctor)
-  .put(protect, authorize('doctor', 'admin'), updateDoctor)
-  .delete(protect, authorize('doctor', 'admin'), deleteDoctor);
-
-router
-  .route('/:id/availability')
-  .get(getAvailabilities)
-  .post(protect, authorize('doctor', 'admin'), addAvailability);
+  .get(protect, getAppointment)
+  .put(protect, updateAppointment)
+  .delete(protect, deleteAppointment);
 
 module.exports = router;

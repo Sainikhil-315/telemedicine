@@ -7,38 +7,61 @@ const mongoose = require('mongoose');
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
+
 exports.register = async (req, res) => {
     try {
-        console.log(req.body); // Log the incoming request body for debugging
-
-        const { name, email, password, role, phone, address, specialty, experience, consultationFee, qualifications, hospital } = req.body;
-
-        // 1️⃣ First, create the user
-        const user = await User.create({ name, email, password, role, phone, address });
-
-        // 2️⃣ If the user is a doctor, create a doctor profile
-        if (role === "doctor") {
-            const doctor = await Doctor.create({
-                user: user._id,     // Reference to the user
-                name,               // Pass name directly
-                email,              // Pass email directly
-                specialty,
-                experience,
-                consultationFee,
-                qualifications,
-                hospital
-            });
-        }
-
-        // 3️⃣ Generate token and send response
-        const token = user.getSignedJwtToken();
-        res.status(201).json({ success: true, token, role: user.role });
-
+      console.log(req.body); // Log the incoming request body for debugging
+  
+      const {
+        name,
+        username,
+        email,
+        password,
+        role,
+        phone,
+        address,
+        specialty,
+        experience,
+        consultationFee,
+        qualifications,
+        hospital,
+        rating,
+        reviewCount,
+        availability
+      } = req.body;
+  
+      // 1️⃣ First, create the user
+      const user = await User.create({ name, username, email, password, role, phone, address });
+  
+      // 2️⃣ If the user is a doctor, create a doctor profile
+      if (role === 'doctor') {
+        const doctor = await Doctor.create({
+          user: user._id,     // Reference to the user
+          name,               // Pass name directly
+          username,
+          email,              // Pass email directly
+          specialty,
+          experience,
+          consultationFee,
+          qualifications,
+          hospital,
+          rating,
+          reviewCount,
+          password,
+          phone,
+          availability         // Include the availability schedule
+        });
+      }
+  
+      // 3️⃣ Generate token and send response
+      const token = user.getSignedJwtToken();
+      res.status(201).json({ success: true, token, role: user.role });
+  
     } catch (error) {
-        console.error(error); // Log error for debugging
-        res.status(400).json({ success: false, error: error.message });
+      console.error(error); // Log error for debugging
+      res.status(400).json({ success: false, error: error.message });
     }
-};
+  };
 
 // @desc    Login user
 // @route   POST /api/auth/login

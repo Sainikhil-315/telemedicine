@@ -56,7 +56,7 @@ const DoctorsPage = () => {
   };
 
   const handleDoctorSelect = (doctorId) => {
-    navigate(`/appointments/new/${doctorId}`);
+    navigate(`/appointment/${doctorId}`);
   };
 
   return (
