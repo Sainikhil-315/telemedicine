@@ -25,11 +25,7 @@ router
       },
       {
         path: 'doctor',
-        select: 'specialization consultationFee',
-        populate: {
-          path: 'user',
-          select: 'name email'
-        }
+        select: 'specialization consultationFee'
       }
     ]),
     getAppointments
