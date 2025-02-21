@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, AlertCircle, CreditCard } from 'lucide-react';
+import { Calendar, Clock, AlertCircle } from 'lucide-react';
 import {
-  getUserAppointments,
-  createAppointment,
-  getAppointmentById
+  appointmentsAPI
 } from '../api/appointments';
 
 const AppointmentForm = ({ doctorId }) => {
@@ -16,7 +14,7 @@ const AppointmentForm = ({ doctorId }) => {
     date: '',
     startTime: '',
     endTime: '',
-    type: 'video',
+    type: 'in-person',
     symptoms: '',
     notes: '',
   });
@@ -90,7 +88,7 @@ const AppointmentForm = ({ doctorId }) => {
     setError(null);
 
     try {
-      const response = await createAppointment(formData);
+      const response = await appointmentsAPI.createAppointment(formData);
       navigate('/appointments', { 
         state: { 
           message: 'Appointment scheduled successfully',

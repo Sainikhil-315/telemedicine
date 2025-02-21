@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { login, register, logout, checkAuthStatus } from '../api/auth';
+import { authAPI } from '../api/auth';
 
 const AuthContext = createContext();
 
@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
         }
 
         // Verify token with backend
-        const userData = await checkAuthStatus(token);
+        const userData = await authAPI.checkAuthStatus(token);
         
         if (userData) {
           setCurrentUser(userData);
@@ -51,7 +51,7 @@ export function AuthProvider({ children }) {
   const handleLogin = async (email, password) => {
     setError(null);
     try {
-      const userData = await login(email, password);
+      const userData = await authAPI.login(email, password);
       
       if (userData && userData.token) {
         localStorage.setItem('authToken', userData.token);
@@ -69,7 +69,7 @@ export function AuthProvider({ children }) {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await authAPI.logout();
     } catch (err) {
       console.error("Logout failed:", err);
     } finally {
@@ -82,7 +82,7 @@ export function AuthProvider({ children }) {
   const handleRegister = async (userData) => {
     setError(null);
     try {
-      const response = await register(userData);
+      const response = await authAPI.register(userData);
       
       if (response && response.token) {
         localStorage.setItem('authToken', response.token);
@@ -99,7 +99,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = {
-    currentUser,
+    user: currentUser,
     isAuthenticated,
     loading,
     error,

@@ -1,29 +1,47 @@
-import apiClient from './index';
+// api/users.js
+import { createAxiosInstance } from './axiosHelper';
+const axios = createAxiosInstance();
 
-// Get user profile
-export const getUserProfile = async () => {
-  const response = await apiClient.get('/users/profile');
-  return response.data;
-};
-
-// Update user profile
-export const updateUserProfile = async (profileData) => {
-  const response = await apiClient.put('/users/profile', profileData);
-  return response.data;
-};
-
-// Change password
-export const changePassword = async (passwords) => {
-  const response = await apiClient.put('/users/change-password', passwords);
-  return response.data;
-};
-
-// Upload profile picture
-export const uploadProfilePicture = async (formData) => {
-  const response = await apiClient.post('/users/profile-picture', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
+export const usersAPI = {
+  getUserProfile: async () => {
+    try {
+      const response = await axios.get('/users/profile');
+      return response.data;
+    } catch (error) {
+      console.error('Get profile error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch profile');
     }
-  });
-  return response.data;
+  },
+
+  updateUserProfile: async (profileData) => {
+    try {
+      const response = await axios.put('/users/profile', profileData);
+      return response.data;
+    } catch (error) {
+      console.error('Update profile error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to update profile');
+    }
+  },
+
+  changePassword: async (passwords) => {
+    try {
+      const response = await axios.put('/users/change-password', passwords);
+      return response.data;
+    } catch (error) {
+      console.error('Change password error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to change password');
+    }
+  },
+
+  uploadProfilePicture: async (formData) => {
+    try {
+      const response = await axios.post('/users/profile-picture', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Upload picture error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to upload picture');
+    }
+  }
 };

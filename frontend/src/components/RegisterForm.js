@@ -9,11 +9,21 @@ const RegisterForm = () => {
     firstName: '',
     lastName: '',
     email: '',
+    username: '',
     password: '',
     confirmPassword: '',
     gender: '',
     dateOfBirth: '',
     phone: '',
+    role: '',
+    // Doctor specific fields
+    specialty: '',
+    qualifications: '',
+    hospital: '',
+    experience: '',
+    consultationFee: '',
+    imageUrl: '',
+    availability: [],
     agreeToTerms: false
   });
 
@@ -31,7 +41,6 @@ const RegisterForm = () => {
       [name]: type === 'checkbox' ? checked : value
     });
 
-    // Clear validation error for this field
     if (validationErrors[name]) {
       setValidationErrors({
         ...validationErrors,
@@ -43,14 +52,11 @@ const RegisterForm = () => {
   const validateForm = () => {
     const errors = {};
 
-    if (!formData.firstName.trim()) {
-      errors.firstName = 'First name is required';
-    }
-
-    if (!formData.lastName.trim()) {
-      errors.lastName = 'Last name is required';
-    }
-
+    // Basic validation for all users
+    if (!formData.firstName.trim()) errors.firstName = 'First name is required';
+    if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
+    if (!formData.username.trim()) errors.username = 'Username is required';
+    
     if (!formData.email) {
       errors.email = 'Email is required';
     } else if (!isValidEmail(formData.email)) {
@@ -67,16 +73,18 @@ const RegisterForm = () => {
       errors.confirmPassword = 'Passwords do not match';
     }
 
-    if (!formData.gender) {
-      errors.gender = 'Please select your gender';
-    }
-
-    if (!formData.dateOfBirth) {
-      errors.dateOfBirth = 'Date of birth is required';
-    }
-
-    if (!formData.phone) {
-      errors.phone = 'Phone number is required';
+    if (!formData.gender) errors.gender = 'Please select your gender';
+    if (!formData.dateOfBirth) errors.dateOfBirth = 'Date of birth is required';
+    if (!formData.phone) errors.phone = 'Phone number is required';
+    if (!formData.role) errors.role = 'Please select your role';
+    
+    // Additional validation for doctors
+    if (formData.role === 'doctor') {
+      if (!formData.specialty) errors.specialty = 'Specialty is required';
+      if (!formData.qualifications) errors.qualifications = 'Qualifications are required';
+      if (!formData.hospital) errors.hospital = 'Hospital name is required';
+      if (!formData.experience) errors.experience = 'Years of experience is required';
+      if (!formData.consultationFee) errors.consultationFee = 'Consultation fee is required';
     }
 
     if (!formData.agreeToTerms) {
@@ -101,11 +109,26 @@ const RegisterForm = () => {
       const userData = {
         name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
+        username: formData.username,
         password: formData.password,
         gender: formData.gender,
         dateOfBirth: formData.dateOfBirth,
-        phone: formData.phone
+        phone: formData.phone,
+        role: formData.role
       };
+
+      // Add doctor-specific fields if role is doctor
+      if (formData.role === 'doctor') {
+        Object.assign(userData, {
+          specialty: formData.specialty,
+          qualifications: formData.qualifications,
+          hospital: formData.hospital,
+          experience: parseInt(formData.experience),
+          consultationFee: parseFloat(formData.consultationFee),
+          imageUrl: formData.imageUrl,
+          availability: [] // You might want to add a UI for setting availability
+        });
+      }
 
       await register(userData);
       navigate('/dashboard');
@@ -158,6 +181,21 @@ const RegisterForm = () => {
             </Form.Group>
           </Col>
         </Row>
+
+        <Form.Group className="mb-3" controlId="username">
+          <Form.Label>Username</Form.Label>
+          <Form.Control
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            isInvalid={!!validationErrors.username}
+            placeholder="Choose a username"
+          />
+          <Form.Control.Feedback type="invalid">
+            {validationErrors.username}
+          </Form.Control.Feedback>
+        </Form.Group>
 
         <Form.Group className="mb-3" controlId="email">
           <Form.Label>Email Address</Form.Label>
@@ -264,31 +302,120 @@ const RegisterForm = () => {
             {validationErrors.phone}
           </Form.Control.Feedback>
         </Form.Group>
+
         <Form.Group className="mb-3" controlId="role">
           <Form.Label>Are you a doctor or a patient?</Form.Label>
-          <Form.Select name="role" value={formData.role} onChange={handleChange} required>
+          <Form.Select 
+            name="role" 
+            value={formData.role} 
+            onChange={handleChange}
+            isInvalid={!!validationErrors.role}
+          >
             <option value="">Select Role</option>
             <option value="patient">Patient</option>
             <option value="doctor">Doctor</option>
           </Form.Select>
+          <Form.Control.Feedback type="invalid">
+            {validationErrors.role}
+          </Form.Control.Feedback>
         </Form.Group>
 
-        {/* Show doctor-specific fields only if role is 'doctor' */}
+        {/* Doctor-specific fields */}
         {formData.role === 'doctor' && (
           <>
-            <Form.Group className="mb-3" controlId="specialization">
-              <Form.Label>Specialization</Form.Label>
-              <Form.Control type="text" name="specialization" value={formData.specialization}/>
+            <Form.Group className="mb-3" controlId="specialty">
+              <Form.Label>Specialty</Form.Label>
+              <Form.Control
+                type="text"
+                name="specialty"
+                value={formData.specialty}
+                onChange={handleChange}
+                isInvalid={!!validationErrors.specialty}
+                placeholder="Enter your specialty"
+              />
+              <Form.Control.Feedback type="invalid">
+                {validationErrors.specialty}
+              </Form.Control.Feedback>
             </Form.Group>
 
-            <Form.Group className="mb-3" controlId="experience">
-              <Form.Label>Years of Experience</Form.Label>
-              <Form.Control type="number" name="experience" value={formData.experience} required />
+            <Form.Group className="mb-3" controlId="qualifications">
+              <Form.Label>Qualifications</Form.Label>
+              <Form.Control
+                type="text"
+                name="qualifications"
+                value={formData.qualifications}
+                onChange={handleChange}
+                isInvalid={!!validationErrors.qualifications}
+                placeholder="Enter your qualifications"
+              />
+              <Form.Control.Feedback type="invalid">
+                {validationErrors.qualifications}
+              </Form.Control.Feedback>
             </Form.Group>
 
-            <Form.Group className="mb-3" controlId="consultationFee">
-              <Form.Label>Consultation Fee</Form.Label>
-              <Form.Control type="number" name="consultationFee" value={formData.consultationFee} required />
+            <Form.Group className="mb-3" controlId="hospital">
+              <Form.Label>Hospital</Form.Label>
+              <Form.Control
+                type="text"
+                name="hospital"
+                value={formData.hospital}
+                onChange={handleChange}
+                isInvalid={!!validationErrors.hospital}
+                placeholder="Enter your hospital"
+              />
+              <Form.Control.Feedback type="invalid">
+                {validationErrors.hospital}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3" controlId="experience">
+                  <Form.Label>Years of Experience</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="experience"
+                    value={formData.experience}
+                    onChange={handleChange}
+                    isInvalid={!!validationErrors.experience}
+                    min="0"
+                    placeholder="Enter years of experience"
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {validationErrors.experience}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group className="mb-3" controlId="consultationFee">
+                  <Form.Label>Consultation Fee</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="consultationFee"
+                    value={formData.consultationFee}
+                    onChange={handleChange}
+                    isInvalid={!!validationErrors.consultationFee}
+                    min="0"
+                    step="0.01"
+                    placeholder="Enter consultation fee"
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {validationErrors.consultationFee}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Form.Group className="mb-3" controlId="imageUrl">
+              <Form.Label>Profile Image URL (Optional)</Form.Label>
+              <Form.Control
+                type="text"
+                name="imageUrl"
+                value={formData.imageUrl}
+                onChange={handleChange}
+                placeholder="Enter image URL"
+              />
             </Form.Group>
           </>
         )}

@@ -63,4 +63,4 @@ const AppointmentsPage = () => {
     </div>
   );
 };
-export default AppointmentList;
+export default AppointmentsPage;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, InputGroup } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import DoctorList from '../components/DoctorsList';
-import { searchDoctors, getAllDoctors } from '../api/doctors'; // Import getAllDoctors
+import { doctorsAPI } from '../api/doctors'; // Import getAllDoctors
 
 const DoctorsPage = () => {
   const [doctors, setDoctors] = useState([]);
@@ -17,6 +17,7 @@ const DoctorsPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    /*eslint-disable*/
     fetchDoctors();
   }, [filters]);
 
@@ -27,11 +28,11 @@ const DoctorsPage = () => {
       // If no filters are specified, get all doctors
       let response;
       if (!filters.searchTerm && !filters.specialty) {
-        response = await getAllDoctors();
+        response = await doctorsAPI.getAllDoctors();
         console.log("response if no filters ",response);
       } else {
-        response = await searchDoctors({
-          search: filters.searchTerm,
+        response = await doctorsAPI.searchDoctors({
+          name: filters.searchTerm,
           specialty: filters.specialty,
           // sortBy: filters.sortBy
         },console.log("response if filter applied: ",response));

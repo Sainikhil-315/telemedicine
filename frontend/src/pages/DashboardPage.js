@@ -1,4 +1,3 @@
-
 // DashboardPage.js
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -6,13 +5,14 @@ import AppointmentList from '../components/AppointmentList';
 
 const DashboardPage = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
+  const [stats, ] = useState({
     upcomingAppointments: 0,
     completedAppointments: 0,
     notifications: 0
   });
 
   useEffect(() => {
+    /*eslint-disable */
     // Fetch dashboard stats
     // Implementation depends on your API
   }, []);

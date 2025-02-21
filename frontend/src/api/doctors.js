@@ -1,41 +1,65 @@
-import apiClient from './index';
+// api/doctors.js
+import { createAxiosInstance } from './axiosHelper';
+const axios = createAxiosInstance();
 
-// Get all doctors
-export const getAllDoctors = async (filters = {}) => {
-  const response = await apiClient.get('/doctors', { params: filters });
-  return response.data;
-};
+export const doctorsAPI = {
+  getAllDoctors: async (filters = {}) => {
+    try {
+      const response = await axios.get('/doctors', { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error('Get doctors error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch doctors');
+    }
+  },
 
-// Get doctor by ID
-export const getDoctorById = async (id) => {
-  const response = await apiClient.get(`/doctors/${id}`);
-  return response.data;
-};
+  getDoctorById: async (id) => {
+    try {
+      const response = await axios.get(`/doctors/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Get doctor error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch doctor');
+    }
+  },
 
-// Get doctor availability
-export const getDoctorAvailability = async (doctorId, date) => {
-  const response = await apiClient.get(`/doctors/${doctorId}/availability`, {
-    params: { date }
-  });
-  return response.data;
-};
+  getDoctorAvailability: async (doctorId, date) => {
+    try {
+      const response = await axios.get(`/doctors/${doctorId}/availability`, { params: { date } });
+      return response.data;
+    } catch (error) {
+      console.error('Get availability error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch availability');
+    }
+  },
 
-// Search doctors by speciality, name, etc.
-export const searchDoctors = async (searchParams) => {
-  const response = await apiClient.get('/doctors/search', {
-    params: searchParams
-  });
-  return response.data;
-};
+  searchDoctors: async (searchParams) => {
+    try {
+      const response = await axios.get('/doctors', { params: searchParams });
+      return response.data;
+    } catch (error) {
+      console.error('Search doctors error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to search doctors');
+    }
+  },
 
-// Get doctor reviews
-export const getDoctorReviews = async (doctorId) => {
-  const response = await apiClient.get(`/doctors/${doctorId}/reviews`);
-  return response.data;
-};
+  getDoctorReviews: async (doctorId) => {
+    try {
+      const response = await axios.get(`/doctors/${doctorId}/reviews`);
+      return response.data;
+    } catch (error) {
+      console.error('Get reviews error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch reviews');
+    }
+  },
 
-// Post a review for a doctor
-export const postDoctorReview = async (doctorId, reviewData) => {
-  const response = await apiClient.post(`/doctors/${doctorId}/reviews`, reviewData);
-  return response.data;
+  postDoctorReview: async (doctorId, reviewData) => {
+    try {
+      const response = await axios.post(`/doctors/${doctorId}/reviews`, reviewData);
+      return response.data;
+    } catch (error) {
+      console.error('Post review error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to post review');
+    }
+  }
 };

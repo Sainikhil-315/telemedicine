@@ -2,7 +2,6 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Navbar, Nav, Container, Button, Dropdown } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
-import { getInitials } from '../utils';
 
 const Header = () => {
   const { currentUser, isAuthenticated, logout } = useAuth();
@@ -73,7 +72,7 @@ const Header = () => {
               <Dropdown>
                 <Dropdown.Toggle variant="light" id="profile-dropdown" className="d-flex align-items-center">
                   {currentUser ? (
-                    <i class="fa-solid fa-address-card"></i>
+                    <i className="fa-solid fa-address-card"></i>
                   ) : (
                     <div className="avatar rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style={{width: '30px', height: '30px'}}>
                       {/* {getInitials(currentUser.name)} */}

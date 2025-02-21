@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Calendar, Clock, User, Video, MapPin } from 'lucide-react';
+import { Clock, User, Video, MapPin } from 'lucide-react';
 
 const AppointmentList = ({ limit, filter = 'upcoming' }) => {
   const [appointments, setAppointments] = useState([]);
@@ -8,13 +8,14 @@ const AppointmentList = ({ limit, filter = 'upcoming' }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    /*eslint-disable*/
     const fetchAppointments = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-        
+        console.log(token);
         // Fixed URL with proper protocol and slash
-        const response = await fetch(`http://localhost:5000/api/appointments?filter=${filter}&limit=${limit}`, {
+        const response = await fetch(`http://localhost:5000/api/appointments`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -40,7 +41,7 @@ const AppointmentList = ({ limit, filter = 'upcoming' }) => {
     };
 
     fetchAppointments();
-  }, [filter, limit]);
+  }, []);
 
   const getStatusBadgeClass = (status) => {
     const statusClasses = {
@@ -137,7 +138,8 @@ const AppointmentList = ({ limit, filter = 'upcoming' }) => {
               <div className="flex items-center mb-2">
                 <Video className="mr-2" size={16} />
                 <span className="text-gray-600">
-                  {appointment.type === 'video' ? 'Video Consultation' : 'In-person Visit'}
+                  {/* {appointment.type === 'video' ? 'Video Consultation' : 'In-person Visit'} */}
+                  In-person Visit
                 </span>
               </div>
               {appointment.location && (

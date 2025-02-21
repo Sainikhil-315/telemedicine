@@ -1,38 +1,66 @@
-import apiClient from './index';
+// api/appointments.js
+import { createAxiosInstance } from './axiosHelper';
+const axios = createAxiosInstance();
 
-// Get all appointments for current user
-export const getUserAppointments = async (status) => {
-  const params = status ? { status } : {};
-  const response = await apiClient.get('/appointments', { params });
-  return response.data;
-};
+export const appointmentsAPI = {
+  getUserAppointments: async (status) => {
+    try {
+      const params = status ? { status } : {};
+      const response = await axios.get('/appointments', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Get appointments error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch appointments');
+    }
+  },
 
-// Create a new appointment
-export const createAppointment = async (appointmentData) => {
-  const response = await apiClient.post('/appointments', appointmentData);
-  return response.data;
-};
+  createAppointment: async (appointmentData) => {
+    try {
+      const response = await axios.post('/appointments', appointmentData);
+      return response.data;
+    } catch (error) {
+      console.error('Create appointment error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to create appointment');
+    }
+  },
 
-// Get appointment by ID
-export const getAppointmentById = async (id) => {
-  const response = await apiClient.get(`/appointments/${id}`);
-  return response.data;
-};
+  getAppointmentById: async (id) => {
+    try {
+      const response = await axios.get(`/appointments/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Get appointment error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch appointment');
+    }
+  },
 
-// Cancel appointment
-export const cancelAppointment = async (id, reason) => {
-  const response = await apiClient.put(`/appointments/${id}/cancel`, { reason });
-  return response.data;
-};
+  cancelAppointment: async (id, reason) => {
+    try {
+      const response = await axios.put(`/appointments/${id}/cancel`, { reason });
+      return response.data;
+    } catch (error) {
+      console.error('Cancel appointment error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to cancel appointment');
+    }
+  },
 
-// Reschedule appointment
-export const rescheduleAppointment = async (id, newDateTime) => {
-  const response = await apiClient.put(`/appointments/${id}/reschedule`, { newDateTime });
-  return response.data;
-};
+  rescheduleAppointment: async (id, newDateTime) => {
+    try {
+      const response = await axios.put(`/appointments/${id}/reschedule`, { newDateTime });
+      return response.data;
+    } catch (error) {
+      console.error('Reschedule appointment error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to reschedule appointment');
+    }
+  },
 
-// Complete appointment
-export const completeAppointment = async (id, summary) => {
-  const response = await apiClient.put(`/appointments/${id}/complete`, { summary });
-  return response.data;
+  completeAppointment: async (id, summary) => {
+    try {
+      const response = await axios.put(`/appointments/${id}/complete`, { summary });
+      return response.data;
+    } catch (error) {
+      console.error('Complete appointment error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to complete appointment');
+    }
+  }
 };

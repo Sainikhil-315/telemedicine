@@ -11,29 +11,34 @@ const asyncHandler = require('../middleware/async');
 exports.getDoctors = asyncHandler(async (req, res, next) => {
   const query = {};
 
-  // Filter by doctor's name (if provided)
+  // Apply filters dynamically
   if (req.query.name) {
-    query.name = { $regex: req.query.name, $options: 'i' }; // 'i' for case-insensitive matching
+    query.name = { $regex: req.query.name, $options: 'i' };
   }
 
-  // Filter by specialty (if provided)
   if (req.query.specialty) {
-    query.specialty = { $regex: req.query.specialty, $options: 'i' }; // Case-insensitive search
+    query.specialty = { $regex: req.query.specialty, $options: 'i' };
   }
 
-  // Find doctors with the applied filters
-  const doctors = await Doctor.find(query);
+  try {
+    const doctors = await Doctor.find(query);
 
-  if (!doctors || doctors.length === 0) {
-    return next(new ErrorResponse('No doctors found matching the criteria', 404));
+    if (!doctors.length) {
+      return next(new ErrorResponse('No doctors found matching the criteria', 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      count: doctors.length,
+      data: doctors
+    });
+    console.log("Query Params: ", req.query);
+
+  } catch (error) {
+    next(error);
   }
-
-  res.status(200).json({
-    success: true,
-    count: doctors.length,
-    data: doctors
-  });
 });
+
 
 // @desc    Get single doctor
 // @route   GET /api/doctors/:id

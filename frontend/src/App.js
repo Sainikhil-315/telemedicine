@@ -12,9 +12,9 @@ import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import ChatPage from './pages/ChatPage';
 import DoctorsPage from './pages/DoctorsPage';
-import AppointmentsPage from './pages/AppointmentsPage';
 import ProfilePage from './pages/ProfilePage';
 import AppointmentForm from './components/AppointmentForm';
+import AppointmentsPage from './pages/AppointmentsPage'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {

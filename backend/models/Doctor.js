@@ -1,4 +1,7 @@
+const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const JWT_SECRET = 'nikhil';
 
 const availabilitySchema = new mongoose.Schema({
   dayOfWeek: {
@@ -75,9 +78,61 @@ const doctorSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  availability: [availabilitySchema]
+  availability: {
+    type: [availabilitySchema],
+    default:  [
+    {
+      "dayOfWeek": 1,
+      "startTime": "09:00",
+      "endTime": "16:00"
+    },
+    {
+      "dayOfWeek": 2,
+      "startTime": "09:00",
+      "endTime": "16:00"
+    },
+    {
+      "dayOfWeek": 3,
+      "startTime": "09:00",
+      "endTime": "16:00"
+    },
+    {
+      "dayOfWeek": 4,
+      "startTime": "09:00",
+      "endTime": "16:00"
+    },
+    {
+      "dayOfWeek": 5,
+      "startTime": "09:00",
+      "endTime": "16:00"
+    },
+    {
+      "dayOfWeek": 6,
+      "startTime": "09:00",
+      "endTime": "16:00"
+    }
+  ]}
 }, {
   timestamps: true
 });
+
+// Hash password before saving
+doctorSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) {
+    next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+// Compare password method
+doctorSchema.methods.matchPassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Generate JWT token
+doctorSchema.methods.getSignedJwtToken = function() {
+  return jwt.sign({ id: this._id }, JWT_SECRET);
+};
 
 module.exports = mongoose.model('Doctor', doctorSchema);

@@ -8,7 +8,7 @@ const AuthPage = () => {
   const [activeTab, setActiveTab] = useState('login');
 
   return (
-    <div className="container">
+    <div className="container mb-5">
       <div className="row justify-content-center">
         <div className="col-md-6 mt-5">
           <div className="card">
