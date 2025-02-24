@@ -13,16 +13,7 @@ export const doctorsAPI = {
     }
   },
 
-  getDoctorById: async (id) => {
-    try {
-      const response = await axios.get(`/doctors/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error('Get doctor error:', error.response?.data);
-      throw new Error(error.response?.data?.message || 'Failed to fetch doctor');
-    }
-  },
-
+  
   getDoctorAvailability: async (doctorId, date) => {
     try {
       const response = await axios.get(`/doctors/${doctorId}/availability`, { params: { date } });
@@ -32,7 +23,16 @@ export const doctorsAPI = {
       throw new Error(error.response?.data?.message || 'Failed to fetch availability');
     }
   },
-
+  
+  getDoctorById: async (id) => {
+    try {
+      const response = await axios.get(`/doctors/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Get doctor error:', error.response?.data);
+      throw new Error(error.response?.data?.message || 'Failed to fetch doctor');
+    }
+  },
   searchDoctors: async (searchParams) => {
     try {
       const response = await axios.get('/doctors', { params: searchParams });
@@ -42,6 +42,7 @@ export const doctorsAPI = {
       throw new Error(error.response?.data?.message || 'Failed to search doctors');
     }
   },
+  
 
   getDoctorReviews: async (doctorId) => {
     try {

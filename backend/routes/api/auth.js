@@ -5,13 +5,14 @@ const {
   logout,
   getMe,
   updateDetails,
-  updatePassword
+  updatePassword,
+  getDataWithToken,
+  checkAuthStatus
 } = require('../../controllers/authController');
+const { setCacheHeaders, protect } = require('../../middleware/auth');
 
 const router = express.Router();
-
-const { protect } = require('../../middleware/auth');
-
+router.get('/status', setCacheHeaders, checkAuthStatus);
 router.post('/register', register);
 router.post('/login', login);
 router.get('/logout', logout);

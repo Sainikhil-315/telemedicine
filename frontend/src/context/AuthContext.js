@@ -13,33 +13,33 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Check authentication status when the component mounts
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        
+        const token = localStorage.getItem('token');
+
         if (!token) {
           setIsAuthenticated(false);
+          setCurrentUser(null);
           setLoading(false);
           return;
         }
 
-        // Verify token with backend
-        const userData = await authAPI.checkAuthStatus(token);
-        
-        if (userData) {
-          setCurrentUser(userData);
+        const response = await authAPI.checkAuthStatus(token);
+        console.log(response)
+        if (response?.success && response?.user) {
+          setCurrentUser(response.user);
           setIsAuthenticated(true);
         } else {
-          // Clear invalid token
-          localStorage.removeItem('authToken');
-          setIsAuthenticated(false);
+          // localStorage.removeItem('token');
+          // setCurrentUser(null);
+          // setIsAuthenticated(false);
         }
       } catch (err) {
         console.error("Auth check failed:", err);
-        localStorage.removeItem('authToken');
-        setIsAuthenticated(false);
+        // localStorage.removeItem('token');
+        // setCurrentUser(null);
+        // setIsAuthenticated(false);
       } finally {
         setLoading(false);
       }
@@ -51,13 +51,13 @@ export function AuthProvider({ children }) {
   const handleLogin = async (email, password) => {
     setError(null);
     try {
-      const userData = await authAPI.login(email, password);
-      
-      if (userData && userData.token) {
-        localStorage.setItem('authToken', userData.token);
-        setCurrentUser(userData.user || userData);
+      const response = await authAPI.login(email, password);
+
+      if (response?.token) {
+        localStorage.setItem('token', response.token);
+        setCurrentUser(response.user);
         setIsAuthenticated(true);
-        return userData;
+        return response;
       } else {
         throw new Error('No token received from server');
       }
@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error("Logout failed:", err);
     } finally {
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
       setCurrentUser(null);
       setIsAuthenticated(false);
     }
@@ -83,10 +83,10 @@ export function AuthProvider({ children }) {
     setError(null);
     try {
       const response = await authAPI.register(userData);
-      
-      if (response && response.token) {
-        localStorage.setItem('authToken', response.token);
-        setCurrentUser(response.user || response);
+
+      if (response?.token) {
+        localStorage.setItem('token', response.token);
+        setCurrentUser(response.user);
         setIsAuthenticated(true);
         return response;
       } else {
@@ -97,19 +97,16 @@ export function AuthProvider({ children }) {
       throw err;
     }
   };
-
-  const value = {
-    user: currentUser,
-    isAuthenticated,
-    loading,
-    error,
-    login: handleLogin,
-    register: handleRegister,
-    logout: handleLogout
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      user: currentUser,
+      isAuthenticated,
+      loading,
+      error,
+      login: handleLogin,
+      register: handleRegister,
+      logout: handleLogout
+    }}>
       {!loading && children}
     </AuthContext.Provider>
   );

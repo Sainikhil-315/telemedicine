@@ -56,7 +56,7 @@ const RegisterForm = () => {
     if (!formData.firstName.trim()) errors.firstName = 'First name is required';
     if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
     if (!formData.username.trim()) errors.username = 'Username is required';
-    
+
     if (!formData.email) {
       errors.email = 'Email is required';
     } else if (!isValidEmail(formData.email)) {
@@ -77,7 +77,7 @@ const RegisterForm = () => {
     if (!formData.dateOfBirth) errors.dateOfBirth = 'Date of birth is required';
     if (!formData.phone) errors.phone = 'Phone number is required';
     if (!formData.role) errors.role = 'Please select your role';
-    
+
     // Additional validation for doctors
     if (formData.role === 'doctor') {
       if (!formData.specialty) errors.specialty = 'Specialty is required';
@@ -305,9 +305,9 @@ const RegisterForm = () => {
 
         <Form.Group className="mb-3" controlId="role">
           <Form.Label>Are you a doctor or a patient?</Form.Label>
-          <Form.Select 
-            name="role" 
-            value={formData.role} 
+          <Form.Select
+            name="role"
+            value={formData.role}
             onChange={handleChange}
             isInvalid={!!validationErrors.role}
           >
@@ -325,14 +325,20 @@ const RegisterForm = () => {
           <>
             <Form.Group className="mb-3" controlId="specialty">
               <Form.Label>Specialty</Form.Label>
-              <Form.Control
-                type="text"
+              <Form.Select
                 name="specialty"
                 value={formData.specialty}
                 onChange={handleChange}
                 isInvalid={!!validationErrors.specialty}
-                placeholder="Enter your specialty"
-              />
+              >
+                <option value="">Select Specialty</option>
+                <option value="cardiologist">Cardiologist</option>
+                <option value="dermatologist">Dermatologist</option>
+                <option value="neurologist">Neurologist</option>
+                <option value="orthopedic">Orthopedic</option>
+                <option value="pediatrician">Pediatrician</option>
+                <option value="psychiatrist">Psychiatrist</option>
+              </Form.Select>
               <Form.Control.Feedback type="invalid">
                 {validationErrors.specialty}
               </Form.Control.Feedback>

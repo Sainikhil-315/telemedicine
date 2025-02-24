@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import DoctorList from '../components/DoctorsList';
 import { doctorsAPI } from '../api/doctors'; // Import getAllDoctors
 
-const DoctorsPage = () => {
+const DoctorsPage = ({handleDoctorId}) => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,7 +42,7 @@ const DoctorsPage = () => {
       setError(null);
     } catch (err) {
       console.error('Error fetching doctors:', err);
-      setError('Failed to fetch doctors. Please try again.');
+      setError('No doctors found');
     } finally {
       setLoading(false);
     }
@@ -57,6 +57,8 @@ const DoctorsPage = () => {
   };
 
   const handleDoctorSelect = (doctorId) => {
+    console.log("Doctor Id:", doctorId);
+    handleDoctorId(doctorId);
     navigate(`/appointment/${doctorId}`);
   };
 

@@ -179,7 +179,7 @@ const ProfilePage = () => {
                       onChange={(e) => handleInputChange(e, 'preferences')}
                       disabled={!isEditing}
                     >
-                      <option value="UTC">UTC (GMT+0)</option>
+                      <option value="UTC">UTC (GMT+5:30)</option>
                       <option value="EST">Eastern Time (GMT-5)</option>
                       <option value="CST">Central Time (GMT-6)</option>
                       <option value="MST">Mountain Time (GMT-7)</option>

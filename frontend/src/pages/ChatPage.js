@@ -1,7 +1,7 @@
 
 // ChatPage.js
 import React, { useState, useEffect } from 'react';
-import ChatBox from '../components/Chatbox';
+import ChatBot from '../components/Chatbot';
 
 const ChatPage = () => {
   const [messages, setMessages] = useState([]);
@@ -21,7 +21,7 @@ const ChatPage = () => {
               <h5 className="card-title mb-0">Medical Assistant Chat</h5>
             </div>
             <div className="card-body" style={{ height: '70vh' }}>
-              <ChatBox 
+              <ChatBot 
                 messages={messages}
                 onSendMessage={handleSendMessage}
                 isAssessing={isAssessing}

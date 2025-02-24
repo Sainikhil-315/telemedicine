@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+
+// bootstrap 
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Components
 import Header from './components/Header';
@@ -32,7 +35,13 @@ const ProtectedRoute = ({ children }) => {
 
   return children;
 };
+
 function App() {
+  const [ doctorId, setDoctorId ] = useState(null);
+  const handleDoctorId = (doctorId) => {
+    setDoctorId(doctorId);
+    console.log("Doctor Id in app.js: ",doctorId);
+  }
   return (
     <Router>
       <div className="App d-flex flex-column min-vh-100">
@@ -54,12 +63,12 @@ function App() {
             } />
             <Route path="/appointment/:doctorId" element={
               <ProtectedRoute>
-                <AppointmentForm />
+                <AppointmentForm doctorId={doctorId}/>
               </ProtectedRoute>
             } />
             <Route path="/doctors" element={
               <ProtectedRoute>
-                <DoctorsPage />
+                <DoctorsPage handleDoctorId={handleDoctorId}/>
               </ProtectedRoute>
             } />
             <Route path="/appointments" element={

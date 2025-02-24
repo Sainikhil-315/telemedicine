@@ -36,7 +36,7 @@ export const appointmentsAPI = {
 
   cancelAppointment: async (id, reason) => {
     try {
-      const response = await axios.put(`/appointments/${id}/cancel`, { reason });
+      const response = await axios.delete(`/appointments/${id}`, { reason });
       return response.data;
     } catch (error) {
       console.error('Cancel appointment error:', error.response?.data);
@@ -46,7 +46,7 @@ export const appointmentsAPI = {
 
   rescheduleAppointment: async (id, newDateTime) => {
     try {
-      const response = await axios.put(`/appointments/${id}/reschedule`, { newDateTime });
+      const response = await axios.put(`/appointments/${id}`, { newDateTime });
       return response.data;
     } catch (error) {
       console.error('Reschedule appointment error:', error.response?.data);
@@ -54,13 +54,13 @@ export const appointmentsAPI = {
     }
   },
 
-  completeAppointment: async (id, summary) => {
-    try {
-      const response = await axios.put(`/appointments/${id}/complete`, { summary });
-      return response.data;
-    } catch (error) {
-      console.error('Complete appointment error:', error.response?.data);
-      throw new Error(error.response?.data?.message || 'Failed to complete appointment');
-    }
-  }
+  // completeAppointment: async (id, summary) => {
+  //   try {
+  //     const response = await axios.put(`/appointments/${id}/complete`, { summary });
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error('Complete appointment error:', error.response?.data);
+  //     throw new Error(error.response?.data?.message || 'Failed to complete appointment');
+  //   }
+  // }
 };

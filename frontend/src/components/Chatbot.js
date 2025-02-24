@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Form, Button, Spinner, Alert } from 'react-bootstrap';
 import { formatDateTime } from '../utils';
-import { sendMessage, getChatHistory } from '../api/chat';
+import { sendMessage, getChatHistory } from '../api/chatbotApi';
 
-const ChatBox = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) => {
+const ChatBot = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [error, setError] = useState('');
-  
+
   const messagesEndRef = useRef(null);
-  
+
   // Fetch chat history on component mount
   useEffect(() => {
     const fetchChatHistory = async () => {
@@ -26,36 +26,36 @@ const ChatBox = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) 
         setLoading(false);
       }
     };
-    
+
     if (receiverId) {
       fetchChatHistory();
     }
   }, [receiverId]);
-  
+
   // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-  
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-  
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    
+
     if (!newMessage.trim()) return;
-    
+
     try {
       setSendingMessage(true);
       const response = await sendMessage(receiverId, newMessage);
-      
+
       // Add the sent message to the chat
       setMessages((prevMessages) => [
         ...prevMessages,
         response.message
       ]);
-      
+
       // Clear the input
       setNewMessage('');
     } catch (err) {
@@ -65,7 +65,7 @@ const ChatBox = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) 
       setSendingMessage(false);
     }
   };
-  
+
   return (
     <Card className="chat-box h-100 d-flex flex-column">
       <Card.Header className="bg-white border-bottom">
@@ -79,7 +79,8 @@ const ChatBox = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) 
               height="40"
             />
           ) : (
-            <div className="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style={{ width: '40px', height: '40px' }}>
+            <div>
+              <i className="fa-solid fa-address-card mx-2"></i>
               {receiverName?.charAt(0)}
             </div>
           )}
@@ -91,7 +92,7 @@ const ChatBox = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) 
           </div>
         </div>
       </Card.Header>
-      
+
       <Card.Body className="p-3 overflow-auto" style={{ flexGrow: 1 }}>
         {loading ? (
           <div className="text-center py-5">
@@ -117,23 +118,20 @@ const ChatBox = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) 
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`message mb-3 ${
-                  message.senderId === receiverId ? 'received' : 'sent'
-                }`}
+                className={`message mb-3 ${message.senderId === receiverId ? 'received' : 'sent'
+                  }`}
               >
                 <div
-                  className={`message-bubble p-3 ${
-                    message.senderId === receiverId
+                  className={`message-bubble p-3 ${message.senderId === receiverId
                       ? 'bg-light rounded-end rounded-bottom'
                       : 'bg-primary text-white rounded-start rounded-bottom'
-                  }`}
+                    }`}
                   style={{ maxWidth: '75%', display: 'inline-block' }}
                 >
                   <div className="message-text">{message.content}</div>
-                  <div 
-                    className={`message-time small ${
-                      message.senderId === receiverId ? 'text-muted' : 'text-light'
-                    }`}
+                  <div
+                    className={`message-time small ${message.senderId === receiverId ? 'text-muted' : 'text-light'
+                      }`}
                   >
                     {formatDateTime(message.timestamp, 'h:mm A')}
                   </div>
@@ -144,7 +142,7 @@ const ChatBox = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) 
           </div>
         )}
       </Card.Body>
-      
+
       <Card.Footer className="bg-white p-3 border-top">
         <Form onSubmit={handleSendMessage}>
           <div className="input-group">
@@ -156,8 +154,8 @@ const ChatBox = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) 
               disabled={sendingMessage}
               className="border-end-0"
             />
-            <Button 
-              variant="primary" 
+            <Button
+              variant="primary"
               type="submit"
               disabled={sendingMessage || !newMessage.trim()}
               className="d-flex align-items-center"
@@ -181,4 +179,4 @@ const ChatBox = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) 
   );
 };
 
-export default ChatBox;
+export default ChatBot;

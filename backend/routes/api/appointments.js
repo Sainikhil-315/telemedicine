@@ -13,12 +13,13 @@ const router = express.Router();
 
 const { protect, authorize } = require('../../middleware/auth');
 const advancedResults = require('../../middleware/advancedResults');
+const filterAppointments = require('../../middleware/filterAppointments');
 
 router
   .route('/')
   .get(
     protect,
-    advancedResults(Appointment, [
+    advancedResults(Appointment, filterAppointments, [
       {
         path: 'patient',
         select: 'name email phone'

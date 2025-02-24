@@ -65,31 +65,31 @@ apiClient.interceptors.response.use(
     // Handle different error scenarios
     if (error.response) {
       // Server responded with error status
-      switch (error.response.status) {
-        case 401:
-          // Handle unauthorized access
-          localStorage.removeItem('token');
-          // Only redirect if in browser environment
-          if (typeof window !== 'undefined') {
-            window.location.href = '/auth';
-          }
-          break;
+      // switch (error.response.status) {
+      //   case 401:
+      //     // Handle unauthorized access
+      //     localStorage.removeItem('token');
+      //     // Only redirect if in browser environment
+      //     if (typeof window !== 'undefined') {
+      //       window.location.href = '/auth';
+      //     }
+      //     break;
           
-        case 403:
-          throw new Error('Access forbidden. Please check your permissions.');
+      //   case 403:
+      //     throw new Error('Access forbidden. Please check your permissions.');
           
-        case 404:
-          throw new Error('Resource not found. Please check the requested URL.');
+      //   case 404:
+      //     throw new Error('Resource not found. Please check the requested URL.');
           
-        case 429:
-          throw new Error('Too many requests. Please try again later.');
+      //   case 429:
+      //     throw new Error('Too many requests. Please try again later.');
           
-        case 500:
-          throw new Error('Internal server error. Please try again later.');
+      //   case 500:
+      //     throw new Error('Internal server error. Please try again later.');
           
-        default:
-          throw new Error(`API error: ${error.response.status}`);
-      }
+      //   default:
+      //     throw new Error(`API error: ${error.response.status}`);
+      // }
     } else if (error.request) {
       // Request made but no response received
       throw new Error('No response received from server. Please check your connection.');

@@ -1,12 +1,36 @@
-
-// AppointmentsPage.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppointmentList from '../components/AppointmentList';
 import AppointmentForm from '../components/AppointmentForm';
+import { doctorsAPI } from '../api/doctors';
+import { Link } from 'react-router-dom';
 
-const AppointmentsPage = () => {
+const AppointmentsPage = (props) => {
   const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+  const [doctors, setDoctors] = useState([]);
 
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const data = await doctorsAPI.getAllDoctors();
+        setDoctors(data);
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
+
+  const handleBookAppointment = (doctorId) => {
+    setSelectedDoctorId(doctorId);
+    setShowNewAppointment(true);
+  };
+
+  const handleCancel = () => {
+    setShowNewAppointment(false);
+    setSelectedDoctorId(null);
+  };
   return (
     <div className="container-fluid py-4">
       <div className="row mb-4">
@@ -16,9 +40,12 @@ const AppointmentsPage = () => {
         <div className="col-md-4 text-end">
           <button
             className="btn btn-primary"
-            onClick={() => setShowNewAppointment(true)}
+            onClick={() => {
+              setSelectedDoctorId(null);
+              setShowNewAppointment(true);
+            }}
           >
-            Schedule New Appointment
+            <Link className='text-light text-decoration-none' to='/doctors'>Schedule New Appointment</Link>
           </button>
         </div>
       </div>
@@ -32,8 +59,9 @@ const AppointmentsPage = () => {
               </div>
               <div className="card-body">
                 <AppointmentForm 
-                  onSubmit={() => setShowNewAppointment(false)}
-                  onCancel={() => setShowNewAppointment(false)}
+                  doctorId={props.doctorId}
+                  onSubmit={handleBookAppointment}
+                  onCancel={handleCancel}
                 />
               </div>
             </div>
@@ -55,7 +83,7 @@ const AppointmentsPage = () => {
               </ul>
             </div>
             <div className="card-body">
-              <AppointmentList />
+              <AppointmentList doctors={doctors} onBookAppointment={handleBookAppointment} />
             </div>
           </div>
         </div>
@@ -63,4 +91,5 @@ const AppointmentsPage = () => {
     </div>
   );
 };
+
 export default AppointmentsPage;

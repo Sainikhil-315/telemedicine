@@ -1,37 +1,25 @@
 from flask import Flask, request, jsonify
+from predict import predict_symptom
 from flask_cors import CORS
-import numpy as np
-import pickle
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS to allow requests from frontend
+CORS(app)  # Enable CORS to allow requests from React/Express
 
-# Load the trained SVM model (Ensure model.pkl exists)
-try:
-    with open("model.pkl", "rb") as model_file:
-        model = pickle.load(model_file)
-except FileNotFoundError:
-    model = None
-    print("Warning: model.pkl not found! Train and save the model first.")
-
-@app.route("/chat", methods=["POST"])
-def chatbot_response():
-    data = request.json
-    symptoms = data.get("symptoms", [])
-    
-    if not symptoms:
-        return jsonify({"error": "No symptoms provided"}), 400
-    
-    # Convert symptoms to numerical format (example: dummy encoding)
-    symptoms_vector = np.array(symptoms).reshape(1, -1)  # Modify based on preprocessing
-    
-    if model:
-        prediction = model.predict(symptoms_vector)[0]
-        response = f"Based on your symptoms, you might have {prediction}. Please consult a doctor."
-    else:
-        response = "AI model is not available. Try again later."
-    
-    return jsonify({"response": response})
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        data = request.json  # Get JSON input from frontend
+        user_text = data.get("text", "")  # Extract text input
+        
+        if not user_text:
+            return jsonify({"error": "No text provided"}), 400
+        
+        # Predict the symptom
+        predicted_symptom = predict_symptom(user_text)
+        
+        return jsonify({"predicted_symptom": predicted_symptom})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)  # Running on port 5001
+    app.run(host="0.0.0.0", port=5001, debug=True)

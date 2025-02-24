@@ -28,7 +28,19 @@ app.use(cors({
 }));
 
 // Enable pre-flight for all routes
-app.options('*', cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Cache-Control',  // Add Cache-Control to allowed headers
+    'Pragma',
+    'Expires'
+  ]
+}));
 
 // Body parser
 app.use(express.json());
@@ -67,6 +79,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Mount routes
 app.use('/', routes);
+app.use("/api/symptom", require("./routes/api/symptom"));
 
 // Error handler middleware
 app.use(errorHandler);

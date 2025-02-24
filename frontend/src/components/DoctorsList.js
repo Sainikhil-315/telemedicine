@@ -1,6 +1,6 @@
 import React from 'react';
 import { Row, Col, Card, Button, Badge } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 
 const DoctorList = ({ doctors, loading, onDoctorSelect }) => {
   if (loading) {
@@ -87,7 +87,10 @@ const DoctorList = ({ doctors, loading, onDoctorSelect }) => {
               <div className="d-grid gap-2">
                 <Button
                   variant="primary"
-                  onClick={() => onDoctorSelect(doctor._id)}
+                  onClick={() => {
+                    onDoctorSelect(doctor._id)
+                  }
+                  }
                 >
                   Book Appointment
                 </Button>

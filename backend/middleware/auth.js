@@ -15,19 +15,17 @@ exports.protect = asyncHandler(async (req, res, next) => {
     // Get token from header
     token = req.headers.authorization.split(' ')[1];
   }
-
+  
   if (!token) {
     return next(new ErrorResponse('Not authorized to access this route', 401));
   }
-
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, "nikhil");
     req.user = await User.findById(decoded.id).select('name email username role phone');
-
     if (!req.user || !req.user.username) {
       return next(new ErrorResponse('Username is required in auth', 400));
     }
-
+    
     next();
   } catch (err) {
     return next(new ErrorResponse('Not authorized to access this route', 401));
@@ -47,4 +45,14 @@ exports.authorize = (...roles) => {
     }
     next();
   };
+};
+
+// Backend: Create a middleware/auth.js - Add cache control headers at the backend
+exports.setCacheHeaders = (req, res, next) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  });
+  next();
 };

@@ -71,13 +71,7 @@ const Header = () => {
             {isAuthenticated ? (
               <Dropdown>
                 <Dropdown.Toggle variant="light" id="profile-dropdown" className="d-flex align-items-center">
-                  {currentUser ? (
-                    <i className="fa-solid fa-address-card"></i>
-                  ) : (
-                    <div className="avatar rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style={{width: '30px', height: '30px'}}>
-                      {/* {getInitials(currentUser.name)} */}
-                    </div>
-                  )}
+                <i className="fa-solid fa-address-card"></i>
                   {/* <span className="d-none d-md-inline">{currentUser.name}</span> */}
                 </Dropdown.Toggle>
                 

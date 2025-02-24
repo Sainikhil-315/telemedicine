@@ -64,7 +64,7 @@ UserSchema.methods.matchPassword = async function(enteredPassword) {
 
 // Generate JWT token
 UserSchema.methods.getSignedJwtToken = function() {
-  return jwt.sign({ id: this._id }, JWT_SECRET);
+  return jwt.sign({ id: this._id }, 'nikhil');
 };
 
 module.exports = mongoose.model('User', UserSchema);

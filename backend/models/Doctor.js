@@ -132,7 +132,7 @@ doctorSchema.methods.matchPassword = async function(enteredPassword) {
 
 // Generate JWT token
 doctorSchema.methods.getSignedJwtToken = function() {
-  return jwt.sign({ id: this._id }, JWT_SECRET);
+  return jwt.sign({ id: this._id }, 'nikhil');
 };
 
 module.exports = mongoose.model('Doctor', doctorSchema);

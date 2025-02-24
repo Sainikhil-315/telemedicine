@@ -12,22 +12,31 @@ const { sendAppointmentSMS } = require('../utils/smsService');
 // @route   GET /api/appointments
 // @access  Private
 exports.getAppointments = asyncHandler(async (req, res, next) => {
-  // If user is not admin, they can only see their own appointments
+  console.log(req.user); // Debugging log
+
+  let filter = {};
+
+  // If user is not an admin, restrict access based on role
   if (req.user.role !== 'admin') {
     if (req.user.role === 'doctor') {
-      const doctor = await Doctor.findOne({ user: req.user.id });
+      const doctor = await Doctor.findOne({ user: req.user._id });
       if (!doctor) {
-        return next(
-          new ErrorResponse(`No doctor profile found for this user`, 404)
-        );
+        return next(new ErrorResponse(`No doctor profile found for this user`, 404));
       }
-      req.query.doctor = doctor._id;
+      filter.doctor = doctor._id;
     } else {
-      req.query.patient = req.user.id;
+      filter.patient = req.user.id;
     }
   }
 
-  res.status(200).json(res.advancedResults);
+  try {
+    const appointments = await Appointment.find(filter)
+      .populate('doctor', 'name specialty'); // Fetch doctor's name & specialty
+
+    res.status(200).json({ success: true, data: appointments });
+  } catch (error) {
+    next(new ErrorResponse(`Error fetching appointments: ${error.message}`, 500));
+  }
 });
 
 // @desc    Get single appointment

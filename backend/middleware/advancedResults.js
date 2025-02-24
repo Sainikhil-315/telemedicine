@@ -45,12 +45,13 @@ const advancedResults = (model, populate) => async (req, res, next) => {
   if (populate) {
     if (Array.isArray(populate)) {
       populate.forEach(item => {
-        query = query.populate(item);
+        query = query.populate(item.path, item.select);
       });
     } else {
-      query = query.populate(populate);
+      query = query.populate(populate.path, populate.select);
     }
   }
+  
 
   // Executing query
   const results = await query;

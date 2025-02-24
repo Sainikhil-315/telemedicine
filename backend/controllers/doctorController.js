@@ -32,7 +32,7 @@ exports.getDoctors = asyncHandler(async (req, res, next) => {
       count: doctors.length,
       data: doctors
     });
-    console.log("Query Params: ", req.query);
+    // console.log("Query Params: ", req.query);
 
   } catch (error) {
     next(error);
@@ -44,10 +44,7 @@ exports.getDoctors = asyncHandler(async (req, res, next) => {
 // @route   GET /api/doctors/:id
 // @access  Public
 exports.getDoctor = asyncHandler(async (req, res, next) => {
-  const doctor = await Doctor.findById(req.params.id).populate({
-    path: 'user',
-    select: 'name email phone'
-  });
+  const doctor = await Doctor.findById(req.params.id);
 
   if (!doctor) {
     return next(
@@ -200,15 +197,23 @@ exports.addAvailability = asyncHandler(async (req, res, next) => {
   });
 });
 
+
 // @desc    Get doctor availabilities
 // @route   GET /api/doctors/:id/availability
 // @access  Public
 exports.getAvailabilities = asyncHandler(async (req, res, next) => {
-  const availabilities = await Availability.find({ doctor: req.params.id });
+  const doctor = await Doctor.findById(req.params.id).select('availability');
+
+  if (!doctor) {
+    return res.status(404).json({
+      success: false,
+      message: 'Doctor not found'
+    });
+  }
 
   res.status(200).json({
     success: true,
-    count: availabilities.length,
-    data: availabilities
+    count: doctor.availability.length,
+    data: doctor.availability
   });
 });

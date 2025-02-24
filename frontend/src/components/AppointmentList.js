@@ -1,98 +1,127 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Clock, User, Video, MapPin } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrashAlt, faEdit, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { doctorsAPI } from '../api/doctors';
+import { appointmentsAPI } from '../api/appointments';
+import { Modal } from 'react-bootstrap';
 
-const AppointmentList = ({ limit, filter = 'upcoming' }) => {
+const AppointmentList = ({ onBookAppointment }) => {
   const [appointments, setAppointments] = useState([]);
+  const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [editType, setEditType] = useState('');
 
   useEffect(() => {
-    /*eslint-disable*/
-    const fetchAppointments = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        console.log(token);
-        // Fixed URL with proper protocol and slash
-        const response = await fetch(`http://localhost:5000/api/appointments`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error('Session expired. Please login again.');
-          }
-          const errorData = await response.json().catch(() => null);
-          throw new Error(errorData?.message || 'Failed to fetch appointments');
-        }
-    
-        const data = await response.json();
-        setAppointments(data.data || []);
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAppointments();
+    fetchAppointmentsAndDoctors();
   }, []);
 
-  const getStatusBadgeClass = (status) => {
-    const statusClasses = {
-      scheduled: 'bg-blue-500',
-      confirmed: 'bg-green-500',
-      completed: 'bg-purple-500',
-      cancelled: 'bg-red-500',
-      'no-show': 'bg-yellow-500'
-    };
-    return `inline-block px-2 py-1 text-xs font-semibold text-white rounded-full ${statusClasses[status] || 'bg-gray-500'}`;
+  const fetchAppointmentsAndDoctors = async () => {
+    try {
+      setLoading(true);
+      
+      const [appointmentsRes, doctorsRes] = await Promise.all([
+        appointmentsAPI.getUserAppointments(),
+        doctorsAPI.getAllDoctors()
+      ]);
+      
+      const doctorsMap = doctorsRes.data.reduce((acc, doctor) => {
+        acc[doctor._id] = doctor;
+        return acc;
+      }, {});
+
+      const updatedAppointments = appointmentsRes.data.map(appointment => ({
+        ...appointment,
+        doctor: doctorsMap[appointment.doctorId] || {}
+      }));
+      
+      setAppointments(updatedAppointments);
+      setDoctors(doctorsRes.data);
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancelAppointment = async (appointmentId) => {
-    if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
-
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/appointments/${appointmentId}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: 'cancelled' })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || 'Failed to cancel appointment');
-      }
-
-      setAppointments(appointments.map(apt => 
-        apt.id === appointmentId ? { ...apt, status: 'cancelled' } : apt
-      ));
+      await appointmentsAPI.cancelAppointment(appointmentId);
+      setAppointments(prevAppointments =>
+        prevAppointments.map(apt =>
+          apt._id === appointmentId ? { ...apt, status: 'cancelled' } : apt
+        )
+      );
+      // Show success toast or message
+      alert('Appointment cancelled successfully');
     } catch (err) {
       console.error('Error cancelling appointment:', err);
       alert(err.message);
     }
   };
 
+  const handleEditClick = (appointment) => {
+    setSelectedAppointment(appointment);
+    setEditType(appointment.type);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateAppointment = async () => {
+    try {
+      if (!selectedAppointment) return;
+
+      // Update the appointment type
+      await appointmentsAPI.rescheduleAppointment(selectedAppointment._id, {
+        ...selectedAppointment,
+        type: editType
+      });
+
+      // Update local state
+      setAppointments(prevAppointments =>
+        prevAppointments.map(apt =>
+          apt._id === selectedAppointment._id ? { ...apt, type: editType } : apt
+        )
+      );
+
+      setShowEditModal(false);
+      alert('Appointment updated successfully');
+    } catch (err) {
+      console.error('Error updating appointment:', err);
+      alert(err.message);
+    }
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'scheduled':
+        return 'bg-primary';
+      case 'confirmed':
+        return 'bg-success';
+      case 'cancelled':
+        return 'bg-danger';
+      default:
+        return 'bg-secondary';
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <div className="d-flex justify-content-center align-items-center p-4">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg" role="alert">
+      <div className="alert alert-danger" role="alert">
         Error loading appointments: {error}
       </div>
     );
@@ -101,85 +130,149 @@ const AppointmentList = ({ limit, filter = 'upcoming' }) => {
   if (appointments.length === 0) {
     return (
       <div className="text-center p-4">
-        <p className="text-gray-500">No appointments found.</p>
+        <p className="text-muted">No appointments found.</p>
       </div>
     );
   }
-
+  console.log("Appointments: ",appointments);
   return (
-    <div className="space-y-4">
-      {appointments.map((appointment) => (
-        <div key={appointment.id} className="bg-white rounded-lg shadow-sm border p-4">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-            <div className="md:col-span-2 text-center">
-              <div className="text-lg font-semibold">
-                {format(new Date(appointment.date), 'MMM dd')}
-              </div>
-              <div className="text-sm text-gray-500">
-                {format(new Date(appointment.date), 'yyyy')}
-              </div>
-            </div>
-            
-            <div className="md:col-span-5">
-              <h5 className="flex items-center text-lg font-semibold mb-1">
-                <User className="mr-2" size={16} />
-                Dr. {appointment.doctorName}
-              </h5>
-              <p className="text-gray-600 mb-0">
-                {appointment.specialty}
-              </p>
-              <div className="flex items-center text-gray-500 mt-1">
-                <Clock className="mr-1" size={14} />
-                {format(new Date(appointment.date), 'hh:mm a')}
-              </div>
-            </div>
-
-            <div className="md:col-span-3">
-              <div className="flex items-center mb-2">
-                <Video className="mr-2" size={16} />
-                <span className="text-gray-600">
-                  {/* {appointment.type === 'video' ? 'Video Consultation' : 'In-person Visit'} */}
-                  In-person Visit
-                </span>
-              </div>
-              {appointment.location && (
-                <div className="flex items-center">
-                  <MapPin className="mr-2" size={16} />
-                  <span className="text-gray-600">{appointment.location}</span>
+    <>
+      <div className="container">
+        {appointments.map((appointment) => (
+          <div key={appointment._id} className="card mb-3 shadow-sm">
+            <div className="card-body">
+              <div className="row align-items-center">
+                <div className="col-md-2 text-center">
+                  <div className="h4 mb-0">{format(new Date(appointment.date), 'MMM dd')}</div>
+                  <div className="text-muted">{format(new Date(appointment.date), 'yyyy')}</div>
                 </div>
-              )}
-            </div>
+                
+                <div className="col-md-4">
+                  <h5 className="d-flex align-items-center mb-1">
+                    <User className="me-2" size={16} />
+                    Dr. {appointment.doctor.name || 'Unknown'}
+                  </h5>
+                  <p className="text-muted mb-0">{appointment.doctor.specialty || 'Specialty not available'}</p>
+                  <div className="d-flex align-items-center text-muted mt-1">
+                    <Clock className="me-1" size={14} />
+                    {appointment.startTime}
+                  </div>
+                </div>
 
-            <div className="md:col-span-2 flex flex-col items-end space-y-2">
-              <span className={getStatusBadgeClass(appointment.status)}>
-                {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-              </span>
-              
-              {appointment.status === 'scheduled' && (
-                <div className="flex space-x-2">
-                  <button 
-                    className="px-3 py-1 text-sm text-red-600 border border-red-600 rounded-md hover:bg-red-50"
-                    onClick={() => handleCancelAppointment(appointment.id)}
-                  >
-                    Cancel
-                  </button>
-                  {appointment.type === 'video' && (
-                    <a 
-                      href={appointment.videoLink} 
-                      className="px-3 py-1 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Join
-                    </a>
+                <div className="col-md-3">
+                  <div className="d-flex align-items-center mb-2">
+                    <Video className="me-2" size={16} />
+                    <span className="text-muted">
+                      {appointment.type === 'video' ? 'Video Consultation' : 'In-person Visit'}
+                    </span>
+                  </div>
+                  {appointment.location && (
+                    <div className="d-flex align-items-center">
+                      <MapPin className="me-2" size={16} />
+                      <span className="text-muted">{appointment.location}</span>
+                    </div>
                   )}
                 </div>
-              )}
+
+                <div className="col-md-3">
+                  <div className="d-flex justify-content-end align-items-center">
+                    <span className={`badge ${getStatusBadgeClass(appointment.status)} me-2`}>
+                      {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                    </span>
+                    
+                    {appointment.status === 'scheduled' && (
+                      <div className="btn-group">
+                        <button 
+                          className="btn btn-outline-primary btn-sm me-2"
+                          onClick={() => handleEditClick(appointment)}
+                        >
+                          <FontAwesomeIcon icon={faEdit} className="me-1" />
+                          Edit
+                        </button>
+                        <button 
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => handleCancelAppointment(appointment._id)}
+                        >
+                          <FontAwesomeIcon icon={faTrashAlt} className="me-1" />
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                    
+                    {appointment.type === 'video' && appointment.videoLink && (
+                      <a 
+                        href={appointment.videoLink}
+                        className="btn btn-primary btn-sm ms-2"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Join
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      {/* Edit Modal */}
+      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Appointment</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="form-group">
+            <label className="form-label">Appointment Type</label>
+            <div className="d-flex gap-3">
+              <div className="form-check">
+                <input
+                  type="radio"
+                  className="form-check-input"
+                  id="video"
+                  value="video"
+                  checked={editType === 'video'}
+                  onChange={(e) => setEditType(e.target.value)}
+                />
+                <label className="form-check-label" htmlFor="video">
+                  Video Consultation
+                </label>
+              </div>
+              <div className="form-check">
+                <input
+                  type="radio"
+                  className="form-check-input"
+                  id="in-person"
+                  value="in-person"
+                  checked={editType === 'in-person'}
+                  onChange={(e) => setEditType(e.target.value)}
+                />
+                <label className="form-check-label" htmlFor="in-person">
+                  In-Person Visit
+                </label>
+              </div>
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button 
+            className="btn btn-secondary"
+            onClick={() => setShowEditModal(false)}
+          >
+            <FontAwesomeIcon icon={faTimesCircle} className="me-1" />
+            Cancel
+          </button>
+          <button 
+            className="btn btn-primary"
+            onClick={handleUpdateAppointment}
+          >
+            <FontAwesomeIcon icon={faCheckCircle} className="me-1" />
+            Update
+          </button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 };
 
