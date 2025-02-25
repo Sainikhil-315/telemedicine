@@ -1,181 +1,142 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, Form, Button, Spinner, Alert } from 'react-bootstrap';
-import { formatDateTime } from '../utils';
-import { sendMessage, getChatHistory } from '../api/chatbotApi';
+import React, { useState, useEffect, useRef } from "react";
+import { getChatHistory, sendMessage } from "../api/chatbotApi";
+import DynamicAIResponse from "./DynamicAIResponse"; // Added the missing import
 
-const ChatBot = ({ receiverId, receiverName, receiverPhoto, isDoctor = false }) => {
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [sendingMessage, setSendingMessage] = useState(false);
-  const [error, setError] = useState('');
-
+const ChatBot = ({ userId, isAssessing, onSendMessage, setMessages, messages }) => {
+  const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
 
-  // Fetch chat history on component mount
+  // Load chat history on component mount
   useEffect(() => {
-    const fetchChatHistory = async () => {
-      try {
-        setLoading(true);
-        const data = await getChatHistory(receiverId);
-        setMessages(data.messages || []);
-      } catch (err) {
-        setError('Failed to load chat history. Please try again.');
-        console.error(err);
-      } finally {
-        setLoading(false);
+    async function fetchChatHistory() {
+      if (userId) {
+        const data = await getChatHistory(userId);
+        if (data && data.messages) {
+          setMessages(data.messages);
+        }
       }
-    };
+    }
 
-    if (receiverId) {
+    // Only fetch if we don't already have messages
+    if (messages.length === 0) {
       fetchChatHistory();
     }
-  }, [receiverId]);
+  }, [userId, setMessages, messages.length]);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom whenever messages change
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleSend = async () => {
+    if (!input.trim() || isAssessing) return;
+
+    // Temporarily add the user message to UI
+    const userMessage = { sender: "user", text: input.trim() };
+    setMessages((prev) => [...prev, userMessage]);
+
+    // Clear input and set assessing state
+    setInput("");
+    onSendMessage(true); // Set assessing to true while waiting for response
+
+    // Send to API and get response
+    try {
+      const data = await sendMessage(userId, input.trim());
+      if (data && data.messages) {
+        setMessages(data.messages);
+      }
+    } catch (error) {
+      console.error("Error in chat:", error);
+      // Add error message to chat
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "Sorry, I encountered an error processing your request." }
+      ]);
+    } finally {
+      onSendMessage(false); // Set assessing back to false
+    }
   };
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-
-    if (!newMessage.trim()) return;
-
-    try {
-      setSendingMessage(true);
-      const response = await sendMessage(receiverId, newMessage);
-
-      // Add the sent message to the chat
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        response.message
-      ]);
-
-      // Clear the input
-      setNewMessage('');
-    } catch (err) {
-      setError('Failed to send message. Please try again.');
-      console.error(err);
-    } finally {
-      setSendingMessage(false);
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSend();
     }
   };
 
   return (
-    <Card className="chat-box h-100 d-flex flex-column">
-      <Card.Header className="bg-white border-bottom">
-        <div className="d-flex align-items-center">
-          {receiverPhoto ? (
-            <img
-              src={receiverPhoto}
-              alt={receiverName}
-              className="rounded-circle me-2"
-              width="40"
-              height="40"
-            />
-          ) : (
-            <div>
-              <i className="fa-solid fa-address-card mx-2"></i>
-              {receiverName?.charAt(0)}
-            </div>
-          )}
-          <div>
-            <h6 className="mb-0">{receiverName}</h6>
-            <small className="text-muted">
-              {isDoctor ? 'Doctor' : 'Patient'}
-            </small>
-          </div>
-        </div>
-      </Card.Header>
-
-      <Card.Body className="p-3 overflow-auto" style={{ flexGrow: 1 }}>
-        {loading ? (
-          <div className="text-center py-5">
-            <Spinner animation="border" role="status" variant="primary">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-            <p className="mt-2">Loading conversation...</p>
-          </div>
-        ) : error ? (
-          <Alert variant="danger" className="mb-0">
-            {error}
-          </Alert>
-        ) : messages.length === 0 ? (
-          <div className="text-center py-5">
-            <i className="fas fa-comment-dots fa-4x text-muted mb-3"></i>
-            <h5>No messages yet</h5>
-            <p className="text-muted">
-              Start the conversation by saying hello!
-            </p>
-          </div>
-        ) : (
-          <div className="messages">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`message mb-3 ${message.senderId === receiverId ? 'received' : 'sent'
-                  }`}
-              >
+    <div className="d-flex flex-column" style={{ height: "100%" }}>
+      {/* Chat Messages Area */}
+      <div className="flex-grow-1 overflow-auto p-3" style={{ maxHeight: "calc(90vh - 180px)" }}>
+        {messages && messages.length > 0 ? (
+          messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`d-flex mb-3 ${msg.sender === "user" ? "justify-content-end" : "justify-content-start"}`}
+            >
+              {msg.sender === "user" ? (
                 <div
-                  className={`message-bubble p-3 ${message.senderId === receiverId
-                      ? 'bg-light rounded-end rounded-bottom'
-                      : 'bg-primary text-white rounded-start rounded-bottom'
-                    }`}
-                  style={{ maxWidth: '75%', display: 'inline-block' }}
+                  className="bg-primary text-white py-2 px-3 rounded"
+                  style={{ maxWidth: "75%", overflowWrap: "break-word" }}
                 >
-                  <div className="message-text">{message.content}</div>
-                  <div
-                    className={`message-time small ${message.senderId === receiverId ? 'text-muted' : 'text-light'
-                      }`}
-                  >
-                    {formatDateTime(message.timestamp, 'h:mm A')}
-                  </div>
+                  {msg.text}
                 </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
+              ) : (
+                <div style={{ maxWidth: "90%", width: "100%" }}>
+                  <DynamicAIResponse content={msg.text} />
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-5">
+            <div className="bg-light rounded-circle p-3 d-inline-block mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-secondary">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </div>
+            <p className="text-secondary">No messages yet. Start the conversation by typing a message below.</p>
           </div>
         )}
-      </Card.Body>
+        <div ref={messagesEndRef} />
+      </div>
 
-      <Card.Footer className="bg-white p-3 border-top">
-        <Form onSubmit={handleSendMessage}>
-          <div className="input-group">
-            <Form.Control
-              type="text"
-              placeholder="Type your message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              disabled={sendingMessage}
-              className="border-end-0"
-            />
-            <Button
-              variant="primary"
-              type="submit"
-              disabled={sendingMessage || !newMessage.trim()}
-              className="d-flex align-items-center"
-            >
-              {sendingMessage ? (
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                />
-              ) : (
-                <i className="fas fa-paper-plane"></i>
-              )}
-            </Button>
+      {/* Chat Input Area */}
+      <div className="p-2 border-top mt-auto">
+        <div className="d-flex">
+          <input
+            type="text"
+            className="form-control me-2"
+            placeholder="Type a health-related question..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={isAssessing}
+          />
+          <button
+            className="btn btn-primary"
+            onClick={handleSend}
+            disabled={isAssessing || !input.trim()}
+            style={{ minWidth: isAssessing ? "120px" : "80px" }}
+          >
+            {isAssessing ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                Processing
+              </>
+            ) : (
+              "Send"
+            )}
+          </button>
+        </div>
+        
+        {/* Typing Indicator */}
+        {isAssessing && (
+          <div className="text-muted small mt-1 ms-1">
+            AI assistant is typing...
           </div>
-        </Form>
-      </Card.Footer>
-    </Card>
+        )}
+      </div>
+    </div>
   );
 };
 

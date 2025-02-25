@@ -1,41 +1,45 @@
-
-// ChatPage.js
 import React, { useState, useEffect } from 'react';
 import ChatBot from '../components/Chatbot';
+import { getChatHistory } from '../api/chatbotApi';
 
 const ChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [isAssessing, setIsAssessing] = useState(false);
+  
+  // Use a dummy userId for now (or get it from authentication)
+  const userId = "65f1a2b3c4d5e6f7a8b9c0d1"; // Example MongoDB ObjectId format
+  
+  useEffect(() => {
+    // Fetch chat history when component mounts
+    async function loadChatHistory() {
+      const data = await getChatHistory(userId);
+      if (data && data.messages) {
+        setMessages(data.messages);
+      }
+    }
+    loadChatHistory();
+  }, [userId]);
 
-  const handleSendMessage = async (message) => {
-    // Implement chat message handling
-    // This would integrate with your NLP/ML backend
+  const handleAssessmentStatus = (status) => {
+    setIsAssessing(status);
   };
 
   return (
-    <div className="container-fluid py-4">
-      <div className="row">
-        <div className="col-md-8">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="card-title mb-0">Medical Assistant Chat</h5>
+    <div className="container mx-auto py-4 px-4">
+      <div className="max-w-4xl mx-auto h-screen flex flex-col">
+        <div className="flex-grow overflow-hidden rounded-lg shadow-lg">
+          <div className="flex flex-col h-full">
+            <div className="bg-white px-4 py-2 border-b border-gray-200">
+              <h5 className="text-lg font-semibold text-gray-800">Medical Chat Assistant</h5>
             </div>
-            <div className="card-body" style={{ height: '70vh' }}>
+            <div className="flex-grow overflow-hidden">
               <ChatBot 
+                userId={userId}
                 messages={messages}
-                onSendMessage={handleSendMessage}
+                setMessages={setMessages}
                 isAssessing={isAssessing}
+                onSendMessage={handleAssessmentStatus}
               />
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="card-title mb-0">Symptom Summary</h5>
-            </div>
-            <div className="card-body">
-              {/* Implement symptom summary component */}
             </div>
           </div>
         </div>
@@ -43,4 +47,5 @@ const ChatPage = () => {
     </div>
   );
 };
+
 export default ChatPage;

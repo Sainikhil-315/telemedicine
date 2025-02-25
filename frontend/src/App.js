@@ -48,11 +48,12 @@ function App() {
         <Header />
         <main className="main-content flex-grow-1">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<><HomePage /><Footer /></>} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <DashboardPage />
+                <Footer />
               </ProtectedRoute>
             } />
 
@@ -69,6 +70,7 @@ function App() {
             <Route path="/doctors" element={
               <ProtectedRoute>
                 <DoctorsPage handleDoctorId={handleDoctorId}/>
+                <Footer />
               </ProtectedRoute>
             } />
             <Route path="/appointments" element={
@@ -79,11 +81,11 @@ function App() {
             <Route path="/profile" element={
               <ProtectedRoute>
                 <ProfilePage />
+                <Footer />
               </ProtectedRoute>
             } />
           </Routes>
         </main>
-        <Footer />
       </div>
     </Router>
   );
