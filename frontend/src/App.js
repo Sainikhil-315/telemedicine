@@ -18,6 +18,7 @@ import DoctorsPage from './pages/DoctorsPage';
 import ProfilePage from './pages/ProfilePage';
 import AppointmentForm from './components/AppointmentForm';
 import AppointmentsPage from './pages/AppointmentsPage'
+import RecommendationBot from './pages/recommendationBot';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -82,6 +83,11 @@ function App() {
               <ProtectedRoute>
                 <ProfilePage />
                 <Footer />
+              </ProtectedRoute>
+            } />
+            <Route path="/recommend-bot" element={
+              <ProtectedRoute>
+                <RecommendationBot />
               </ProtectedRoute>
             } />
           </Routes>

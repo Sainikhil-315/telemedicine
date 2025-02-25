@@ -1,26 +1,4 @@
-import pickle
-import numpy as np
-import os
-import joblib
-import random
-
-# Define file paths
-model_path = "telemedicine_chatbot_model.pkl"  # Make sure this matches your actual file name
-
-try:
-    with open(model_path, "rb") as file:
-        model = joblib.load(model_path)
-    print("✅ Model loaded successfully.")
-except Exception as e:
-    print(f"❌ Error loading model: {e}")
-    print("Try recreating your model and saving it with a compatible pickle protocol.")
-    exit()
-
-
-# Save this code in a cell and run it
-
-# Define disease categories with their specific symptoms and advice
-disease_data = {
+{
     "Common Cold": {
         "symptoms": ["cough", "congestion", "runny nose", "sore throat", "sneezing", "headache", "fatigue"],
         "advice": [
@@ -157,51 +135,3 @@ disease_data = {
         ]
     }
 }
-
-def get_diagnosis_and_advice(symptom_description):
-    # Predict disease
-    predicted_disease = model.predict([symptom_description])[0]
-    
-    # Get disease probabilities
-    disease_probs = model.predict_proba([symptom_description])[0]
-    disease_names = model.classes_
-    
-    # Get top 3 predictions with probabilities
-    top_indices = disease_probs.argsort()[-3:][::-1]
-    top_diseases = [(disease_names[i], disease_probs[i]) for i in top_indices]
-    
-    # Get sample advice for the predicted disease
-    possible_advice = disease_data[predicted_disease]["advice"]
-    recommended_advice = random.choice(possible_advice)
-    
-    return {
-        "predicted_disease": predicted_disease,
-        "confidence": max(disease_probs),
-        "top_diseases": top_diseases,
-        "recommended_advice": recommended_advice
-    }
-
-
-user_data=input('enter the symptom')
-# Test with a sample symptom description
-test_symptom = user_data
-
-diagnosis = get_diagnosis_and_advice(test_symptom)
-
-print(f"Symptom: {test_symptom}")
-print(f"\nPredicted disease: {diagnosis['predicted_disease']} (Confidence: {diagnosis['confidence']:.2f})")
-print("\nTop 3 possibilities:")
-for disease, prob in diagnosis['top_diseases']:
-    print(f"- {disease}: {prob:.2f}")
-print(f"\nRecommended advice: {diagnosis['recommended_advice']}")
-
-
-# if __name__ == "__main__":
-#     while True:
-#         user_input = input("You: ")
-#         if user_input.lower() == "exit":
-#             print("Goodbye! Stay healthy. 😊")
-#             break
-
-# prediction = predict_symptom(user_input)
-# print(f"🤖 Chatbot: {prediction}")
