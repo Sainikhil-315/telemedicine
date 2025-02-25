@@ -66,7 +66,7 @@ const ChatBot = ({ userId, isAssessing, onSendMessage, setMessages, messages }) 
   return (
     <div className="d-flex flex-column" style={{ height: "100%" }}>
       {/* Chat Messages Area */}
-      <div className="flex-grow-1 overflow-auto p-3" style={{ maxHeight: "calc(90vh - 180px)" }}>
+      <div className="flex-grow-1 overflow-auto p-3 align-items-center justify-content-center" style={{ maxHeight: "calc(90vh - 180px)" }}>
         {messages && messages.length > 0 ? (
           messages.map((msg, index) => (
             <div

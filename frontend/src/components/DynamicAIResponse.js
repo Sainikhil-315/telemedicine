@@ -119,7 +119,7 @@ const DynamicAIResponse = ({ content }) => {
                 <li 
                   key={i} 
                   className={`list-disc ml-${item.level * 4}`}
-                  style={{ marginLeft: `${item.level * 1}rem` }}
+                  style={{ marginLeft: `${item.level * 1}rem`, listStyleType: "disc"}}
                   dangerouslySetInnerHTML={{ __html: item.content }}
                 />
               ))}

@@ -32,7 +32,7 @@ const ChatPage = () => {
             <div className="bg-white px-4 py-2 border-b border-gray-200">
               <h5 className="text-lg font-semibold text-gray-800">Medical Chat Assistant</h5>
             </div>
-            <div className="flex-grow overflow-hidden">
+            <div className="flex-grow overflow-hidden" style={{height: "80vh"}}>
               <ChatBot 
                 userId={userId}
                 messages={messages}
