@@ -4,7 +4,7 @@ require('dotenv').config(); // Ensure environment variables are loaded
 
 // Function to check if a query is medical-related using keywords
 function isMedicalQueryBasic(text) {
-  const medicalKeywords = [ 'hi', 'hello', 'what is the cause of my symptoms?', 'how can I improve my health?', 'can you help me find a specialist?',
+  const medicalKeywords = [ 'hi', 'hello', 'what is the cause of my symptoms?', 'how can I improve my health?', 'can you help me find a specialist?','knee injury',
     'what should I do next?', 'do I need medication?', 'how can I manage my condition?', 'when should I see a doctor?','pain','backpain','body pains',
     'where is the nearest hospital?', 'what are the side effects?', 'is this treatment safe?', 'can you explain my diagnosis?',
     'what are the treatment options?', 'do I need a follow-up?', 'how long will recovery take?', 'can you recommend a treatment?',
@@ -60,7 +60,7 @@ function isMedicalQueryBasic(text) {
     'dislocations', 'spinal injuries', 'head injuries', 'concussions', 'sports injuries', 'rehabilitation', 'physical therapy',
     'occupational therapy', 'speech therapy', 'cognitive therapy', 'behavioral therapy', 'counseling', 'support groups',
     'chronic pain', 'pain management', 'palliative care', 'hospice care', 'end-of-life care', 'grief counseling',
-    'mental health services', 'emergency services', 'urgent care', 'telemedicine', 'virtual consultation', 'home care',
+    'mental health services', 'emergency services', 'urgent care', 'telemedicine', 'virtual consultation', 'home care','how are you',
     'nursing home care', 'assisted living', 'rehabilitation center', 'medical equipment', 'durable medical equipment','sad','mood',
     'assistive devices', 'mobility aids', 'wheelchairs', 'walkers', 'crutches', 'prosthetics', 'orthotics'
 ];
@@ -135,7 +135,7 @@ exports.getGeminiResponse = async (text) => {
     const medicalPrompt = `You are a medical assistant. Please provide information about the following health-related query: ${text}`;
 
     const response = await axios.post(
-      "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent",
       {
         contents: [
           {
