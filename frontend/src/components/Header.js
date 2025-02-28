@@ -4,7 +4,7 @@ import { Navbar, Nav, Container, Button, Dropdown } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
-  const { currentUser, isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
