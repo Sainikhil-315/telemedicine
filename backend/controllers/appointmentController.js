@@ -12,7 +12,7 @@ const { sendAppointmentSMS } = require('../utils/smsService');
 // @route   GET /api/appointments
 // @access  Private
 exports.getAppointments = asyncHandler(async (req, res, next) => {
-  console.log(req.user); // Debugging log
+  // console.log(req.user); // Debugging log
 
   let filter = {};
 
@@ -117,7 +117,7 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
     );
   }
 
-    console.log("Req body : ",req.body)
+    // console.log("Req body : ",req.body)
   const appointment = await Appointment.create(req.body);
 
   // // Send notification to the doctor
@@ -136,7 +136,7 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
 
   try {
     if (req.user.email) {
-      console.log("Hello email is redirected");
+      // console.log("Hello email is redirected");
       await sendAppointmentEmail({
         email: req.user.email,
         subject: 'Appointment Confirmation',
@@ -149,7 +149,7 @@ exports.createAppointment = asyncHandler(async (req, res, next) => {
   
   try {
     if (req.user.phone) {
-      console.log("Hello message is redirected");
+      // console.log("Hello message is redirected");
       await sendAppointmentSMS({
         to: req.user.phone,
         body: `Your appointment with Dr. ${doctor.name} has been scheduled for ${new Date(req.body.date).toLocaleDateString()} at ${req.body.startTime}`

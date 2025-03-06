@@ -99,9 +99,10 @@ exports.login = asyncHandler(async (req, res, next) => {
 
     if (!user || !(await user.matchPassword(password))) {
         return next(new ErrorResponse('Invalid credentials', 401));
-    }
-
-    sendTokenResponse(user, 200, res);
+      }
+      const token = user.getSignedJwtToken();
+    res.status(200).json({ success: true, token,data: user });
+    // sendTokenResponse(user, 200, res);
 });
 
 // @desc    Log user out
@@ -183,7 +184,7 @@ exports.getDataWithToken = async (req, res) => {
     // Extract token from Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log("Token not provided");
+      // console.log("Token not provided");
       return res.status(400).json({ success: false, message: "Token not provided" });
     }
 
