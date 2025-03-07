@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import AppointmentList from '../components/AppointmentList';
 
 const DashboardPage = () => {
-  const { user } = useAuth();
+  const { user, darkMode } = useAuth();
   const [stats, ] = useState({
     upcomingAppointments: 0,
     completedAppointments: 0,
@@ -18,8 +18,8 @@ const DashboardPage = () => {
   }, []);
 
   return (
-    <div className="container-fluid py-4">
-      <h2 className="mb-4">Welcome back, {user?.name}</h2>
+    <div className={`container-fluid py-4 bg-${darkMode ? 'dark' : 'light'}`}>
+      <h2 className={`mb-4 text-${darkMode? "light":"dark"}`}>Welcome back, {user?.name}</h2>
       
       <div className="row mb-4">
         <div className="col-md-4">
@@ -39,7 +39,7 @@ const DashboardPage = () => {
           </div>
         </div>
         <div className="col-md-4">
-          <div className="card text-white bg-info">
+          <div className="card text-white bg-warning">
             <div className="card-body">
               <h5 className="card-title">New Notifications</h5>
               <p className="card-text display-6">{stats.notifications}</p>
@@ -50,11 +50,11 @@ const DashboardPage = () => {
 
       <div className="row">
         <div className="col-12">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="card-title mb-0">Recent Appointments</h5>
+          <div className={`card border-${darkMode? "light" : "dark"}`}>
+            <div className={`card-header bg-${darkMode? "dark" : "light"}`}>
+              <h5 className={`card-title mb-0 text-${darkMode? "light" : "dark"}`}>Recent Appointments</h5>
             </div>
-            <div className="card-body">
+            <div className={`card-body bg-${darkMode? "dark" : "light"}`}>
               <AppointmentList limit={5} />
             </div>
           </div>

@@ -1,19 +1,19 @@
 // HomePage.js
 import React from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  console.log("Is auth : ",isAuthenticated)
+  const { isAuthenticated, darkMode } = useAuth();
+  // console.log("Is auth : ",isAuthenticated)
   return (
     <div className="container-fluid">
       <div className="row min-vh-100">
-        <div className="col-md-6 d-flex align-items-center bg-light">
+        <div className={`col-md-6 d-flex align-items-center bg-${darkMode ? 'dark' : 'light'}`}>
           <div className="p-5">
-            <h1 className="display-4 mb-4">Virtual Healthcare for You</h1>
-            <p className="lead mb-4">
+            <h1 className={`display-4 mb-4 text-${darkMode? "light" : "dark"}`}>Virtual Healthcare for You</h1>
+            <p className={`lead mb-4 text-${darkMode? "light" : "dark"}`}>
               Get instant medical advice, schedule appointments, and chat with healthcare professionals
               from the comfort of your home.
             </p>
@@ -34,7 +34,7 @@ const HomePage = () => {
           </div>
         </div>
         <div className="col-md-6 bg-primary d-none d-md-flex align-items-center justify-content-center">
-          <div className="text-white text-center p-5">
+          <div className={`text-${darkMode? "dark" : "light"} text-center p-5`}>
             <h2 className="mb-4">Our Services</h2>
             <div className="row g-4">
               <div className="col-6">

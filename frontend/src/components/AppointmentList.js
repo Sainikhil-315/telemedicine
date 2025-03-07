@@ -6,8 +6,10 @@ import { faTrashAlt, faEdit, faCheckCircle, faTimesCircle } from '@fortawesome/f
 import { doctorsAPI } from '../api/doctors';
 import { appointmentsAPI } from '../api/appointments';
 import { Modal } from 'react-bootstrap';
+import { useAuth } from '../context/AuthContext';
 
 const AppointmentList = ({ onBookAppointment }) => {
+  const { darkMode } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +20,7 @@ const AppointmentList = ({ onBookAppointment }) => {
 
   useEffect(() => {
     fetchAppointmentsAndDoctors();
+    console.log("Appointments: ",appointments);
   }, []);
 
   const fetchAppointmentsAndDoctors = async () => {
@@ -137,23 +140,23 @@ const AppointmentList = ({ onBookAppointment }) => {
   console.log("Appointments: ",appointments);
   return (
     <>
-      <div className="container">
+      <div className={`container`}>
         {appointments.map((appointment) => (
           <div key={appointment._id} className="card mb-3 shadow-sm">
-            <div className="card-body">
+            <div className={`card-body bg-${darkMode? "dark" : "light"}`}>
               <div className="row align-items-center">
                 <div className="col-md-2 text-center">
-                  <div className="h4 mb-0">{format(new Date(appointment.date), 'MMM dd')}</div>
-                  <div className="text-muted">{format(new Date(appointment.date), 'yyyy')}</div>
+                  <div className={`h4 mb-0 text-${darkMode ? 'light' : 'dark'}`}>{format(new Date(appointment.date), 'MMM dd')}</div>
+                  <div className={`text-${darkMode ? 'light' : 'dark'}`}>{format(new Date(appointment.date), 'yyyy')}</div>
                 </div>
                 
                 <div className="col-md-4">
-                  <h5 className="d-flex align-items-center mb-1">
-                    <User className="me-2" size={16} />
+                  <h5 className={`d-flex align-items-center mb-1 text-${darkMode ? 'light' : 'dark'}`}>
+                    <User className={`me-2 `} size={16} />
                     Dr. {appointment.doctor.name || 'Unknown'}
                   </h5>
-                  <p className="text-muted mb-0">{appointment.doctor.specialty || 'Specialty not available'}</p>
-                  <div className="d-flex align-items-center text-muted mt-1">
+                  <p className={`mb-0 text-${darkMode ? 'light' : 'dark'}`}>{appointment.doctor.specialty || 'Specialty not available'}</p>
+                  <div className={`d-flex align-items-center text-${darkMode ? 'light' : 'dark'} mt-1`}>
                     <Clock className="me-1" size={14} />
                     {appointment.startTime}
                   </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Row, Col, Card, Button, Badge } from 'react-bootstrap';
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const DoctorList = ({ doctors, loading, onDoctorSelect }) => {
   if (loading) {

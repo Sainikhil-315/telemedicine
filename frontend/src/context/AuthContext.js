@@ -12,6 +12,7 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [ darkMode, setDarkMode ] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -105,7 +106,9 @@ export function AuthProvider({ children }) {
       error,
       login: handleLogin,
       register: handleRegister,
-      logout: handleLogout
+      logout: handleLogout,
+      darkMode,
+      setDarkMode,
     }}>
       {!loading && children}
     </AuthContext.Provider>
