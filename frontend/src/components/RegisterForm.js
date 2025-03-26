@@ -431,7 +431,7 @@ const RegisterForm = () => {
             type="checkbox"
             name="agreeToTerms"
             checked={formData.agreeToTerms}
-            onChange={handleChange}
+            onChange={handleChange} 
             isInvalid={!!validationErrors.agreeToTerms}
             label={
               <span>

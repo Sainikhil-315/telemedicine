@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Calendar, Clock, AlertCircle, UserRound, Stethoscope, IndianRupee } from 'lucide-react';
 import { doctorsAPI } from '../api/doctors';
 import { appointmentsAPI } from '../api/appointments';
+import { useAuth } from '../context/AuthContext';
 
 const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
+  const { darkMode } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);

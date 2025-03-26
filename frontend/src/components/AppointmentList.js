@@ -3,15 +3,13 @@ import { format } from 'date-fns';
 import { Clock, User, Video, MapPin } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashAlt, faEdit, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
-import { doctorsAPI } from '../api/doctors';
 import { appointmentsAPI } from '../api/appointments';
 import { Modal } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 
-const AppointmentList = ({ onBookAppointment }) => {
+const AppointmentList = ({ doctors, onBookAppointment }) => {
   const { darkMode } = useAuth();
   const [appointments, setAppointments] = useState([]);
-  const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -19,31 +17,19 @@ const AppointmentList = ({ onBookAppointment }) => {
   const [editType, setEditType] = useState('');
 
   useEffect(() => {
-    fetchAppointmentsAndDoctors();
-    console.log("Appointments: ",appointments);
+    /*eslint-disable */
+    fetchAppointments();
   }, []);
 
-  const fetchAppointmentsAndDoctors = async () => {
+  const fetchAppointments = async () => {
     try {
       setLoading(true);
       
-      const [appointmentsRes, doctorsRes] = await Promise.all([
-        appointmentsAPI.getUserAppointments(),
-        doctorsAPI.getAllDoctors()
-      ]);
+      const response = await appointmentsAPI.getUserAppointments();
       
-      const doctorsMap = doctorsRes.data.reduce((acc, doctor) => {
-        acc[doctor._id] = doctor;
-        return acc;
-      }, {});
-
-      const updatedAppointments = appointmentsRes.data.map(appointment => ({
-        ...appointment,
-        doctor: doctorsMap[appointment.doctorId] || {}
-      }));
-      
-      setAppointments(updatedAppointments);
-      setDoctors(doctorsRes.data);
+      // The appointments already include the doctor object, no need to map
+      setAppointments(response.data);
+      console.log("Fetched appointments:", response.data);
     } catch (err) {
       console.error('Fetch error:', err);
       setError(err.message);
@@ -137,10 +123,10 @@ const AppointmentList = ({ onBookAppointment }) => {
       </div>
     );
   }
-  console.log("Appointments: ",appointments);
+  
   return (
     <>
-      <div className={`container`}>
+      <div className={`container `}>
         {appointments.map((appointment) => (
           <div key={appointment._id} className="card mb-3 shadow-sm">
             <div className={`card-body bg-${darkMode? "dark" : "light"}`}>
@@ -153,9 +139,9 @@ const AppointmentList = ({ onBookAppointment }) => {
                 <div className="col-md-4">
                   <h5 className={`d-flex align-items-center mb-1 text-${darkMode ? 'light' : 'dark'}`}>
                     <User className={`me-2 `} size={16} />
-                    Dr. {appointment.doctor.name || 'Unknown'}
+                    Dr. {appointment.doctor && appointment.doctor.name ? appointment.doctor.name : 'Unknown'}
                   </h5>
-                  <p className={`mb-0 text-${darkMode ? 'light' : 'dark'}`}>{appointment.doctor.specialty || 'Specialty not available'}</p>
+                  <p className={`mb-0 text-${darkMode ? 'light' : 'dark'}`}>{appointment.doctor && appointment.doctor.specialty ? appointment.doctor.specialty : 'Specialty not available'}</p>
                   <div className={`d-flex align-items-center text-${darkMode ? 'light' : 'dark'} mt-1`}>
                     <Clock className="me-1" size={14} />
                     {appointment.startTime}
@@ -163,9 +149,9 @@ const AppointmentList = ({ onBookAppointment }) => {
                 </div>
 
                 <div className="col-md-3">
-                  <div className="d-flex align-items-center mb-2">
+                  <div className={`d-flex align-items-center mb-2 text-${darkMode? "light" : "dark"}`}>
                     <Video className="me-2" size={16} />
-                    <span className="text-muted">
+                    <span className={`text-${darkMode? "light": "dark"}`}>
                       {appointment.type === 'video' ? 'Video Consultation' : 'In-person Visit'}
                     </span>
                   </div>

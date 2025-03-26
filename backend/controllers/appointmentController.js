@@ -50,7 +50,7 @@ exports.getAppointment = asyncHandler(async (req, res, next) => {
     })
     .populate({
       path: 'doctor',
-      select: 'specialization consultationFee'
+      select: 'name specialty consultationFee'
     });
 
   if (!appointment) {

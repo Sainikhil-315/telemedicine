@@ -67,10 +67,12 @@ const doctorSchema = new mongoose.Schema({
     type: String
   },
   rating: {
+    default: 4,
     type: Number,
     default: 0
   },
   reviewCount: {
+    default: 55, 
     type: Number,
     default: 0
   },

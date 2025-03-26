@@ -3,13 +3,16 @@ import AppointmentList from '../components/AppointmentList';
 import AppointmentForm from '../components/AppointmentForm';
 import { doctorsAPI } from '../api/doctors';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const AppointmentsPage = (props) => {
+  const { darkMode } = useAuth();
   const [showNewAppointment, setShowNewAppointment] = useState(false);
-  const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+  const [setSelectedDoctorId] = useState(null);
   const [doctors, setDoctors] = useState([]);
 
   useEffect(() => {
+    /*eslint-disable */
     const fetchDoctors = async () => {
       try {
         const data = await doctorsAPI.getAllDoctors();
@@ -31,8 +34,9 @@ const AppointmentsPage = (props) => {
     setShowNewAppointment(false);
     setSelectedDoctorId(null);
   };
+  // console.log("Doctors: ", doctors);
   return (
-    <div className="container-fluid py-4">
+    <div className={`container-fluid py-4 bg-${darkMode? "dark":"light"} text-${darkMode? "light":"dark"}`}>
       <div className="row mb-4">
         <div className="col-md-8">
           <h2>My Appointments</h2>
@@ -72,7 +76,7 @@ const AppointmentsPage = (props) => {
       <div className="row">
         <div className="col">
           <div className="card">
-            <div className="card-header">
+            <div className={`card-header bg-${darkMode? "dark":"light"}`}>
               <ul className="nav nav-tabs card-header-tabs">
                 <li className="nav-item">
                   <a className="nav-link active" href="#upcoming">Upcoming</a>
@@ -82,7 +86,7 @@ const AppointmentsPage = (props) => {
                 </li>
               </ul>
             </div>
-            <div className="card-body">
+            <div className={`card-body bg-${darkMode? "dark":"light"} text-${darkMode? "light":"dark"}`}>
               <AppointmentList doctors={doctors} onBookAppointment={handleBookAppointment} />
             </div>
           </div>

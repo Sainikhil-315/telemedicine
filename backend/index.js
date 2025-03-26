@@ -37,7 +37,7 @@ app.use(cors({
     'Content-Type', 
     'Authorization', 
     'X-Requested-With',
-    'Cache-Control',  // Add Cache-Control to allowed headers
+    'Cache-Control',
     'Pragma',
     'Expires'
   ]
@@ -78,11 +78,19 @@ if (process.env.NODE_ENV === 'development') {
   app.use(limiter); // Apply to all routes in production
 }
 
+// Default route to confirm server is running
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Server is running successfully!',
+    status: 'OK',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Mount routes
 app.use('/', routes);
 app.use("/api/symptom", require("./routes/api/symptom"));
 app.use("/api/recommend-bot", recommendBotRoutes);
-
 
 // Error handler middleware
 app.use(errorHandler);
@@ -90,6 +98,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.statusCode || 500).json({ success: false, error: err.message });
 });
+
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(
@@ -97,9 +106,9 @@ const server = app.listen(
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
 );
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  // console.log(`Error: ${err.message}`);
-  // Close server & exit process
-  server.close(() => process.exit(1));
+// Optional: Handle server startup errors
+server.on('error', (error) => {
+  console.error('Server startup error:', error);
 });
+
+module.exports = app;

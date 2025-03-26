@@ -88,8 +88,8 @@ const Header = () => {
                 onChange={handleToggleChange}
               />
               <label className="form-check-label" htmlFor="flexSwitchCheckDefault">
-                {darkMode ? (<i class="fa-solid fa-sun" style={{ color: "white" }}></i>
-                ) : (<i class="fa-solid fa-moon"></i>)}
+                {darkMode ? (<i className="fa-solid fa-sun" style={{ color: "white" }}></i>
+                ) : (<i className="fa-solid fa-moon"></i>)}
               </label>
             </div>
             {isAuthenticated ? (
