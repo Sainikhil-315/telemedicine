@@ -99,7 +99,7 @@ app.use((err, req, res, next) => {
   res.status(err.statusCode || 500).json({ success: false, error: err.message });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
 const server = app.listen(
   PORT,
