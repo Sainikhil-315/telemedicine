@@ -99,16 +99,11 @@ app.use((err, req, res, next) => {
   res.status(err.statusCode || 500).json({ success: false, error: err.message });
 });
 
-const PORT = 5000;
+const port = process.env.PORT;
 
-const server = app.listen(
-  PORT,
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
+app.listen(
+  port,
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${port}`)
 );
-
-// Optional: Handle server startup errors
-server.on('error', (error) => {
-  console.error('Server startup error:', error);
-});
 
 module.exports = app;
