@@ -1,26 +1,58 @@
-// DashboardPage.js
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import AppointmentList from '../components/AppointmentList';
+import { appointmentsAPI } from '../api/appointments';
+import { isAfter, isBefore } from 'date-fns';
 
 const DashboardPage = () => {
   const { user, darkMode } = useAuth();
-  const [stats, ] = useState({
+  const [stats, setStats] = useState({
     upcomingAppointments: 0,
     completedAppointments: 0,
     notifications: 0
   });
+  const [ , setAppointments] = useState([]);
 
   useEffect(() => {
-    /*eslint-disable */
-    // Fetch dashboard stats
-    // Implementation depends on your API
+    const fetchAppointmentsAndCalculateStats = async () => {
+      try {
+        // Fetch all user appointments
+        const response = await appointmentsAPI.getUserAppointments();
+        const fetchedAppointments = response.data;
+        setAppointments(fetchedAppointments);
+
+        // Calculate stats based on current date
+        const now = new Date();
+        const upcomingCount = fetchedAppointments.filter(apt => 
+          // Consider an appointment upcoming if its date is in the future 
+          // and it's not cancelled
+          isAfter(new Date(apt.date), now) && apt.status !== 'cancelled'
+        ).length;
+
+        const completedCount = fetchedAppointments.filter(apt => 
+          // Consider an appointment completed if its date is in the past 
+          // and it's not cancelled
+          isBefore(new Date(apt.date), now) && apt.status !== 'cancelled'
+        ).length;
+
+        setStats({
+          upcomingAppointments: upcomingCount,
+          completedAppointments: completedCount,
+          notifications: 0 // You might want to fetch this from a notifications API
+        });
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+        // Optionally set an error state or show a toast
+      }
+    };
+
+    fetchAppointmentsAndCalculateStats();
   }, []);
 
   return (
     <div className={`container-fluid py-4 bg-${darkMode ? 'dark' : 'light'}`}>
       <h2 className={`mb-4 text-${darkMode? "light":"dark"}`}>Welcome back, {user?.name}</h2>
-      
+     
       <div className="row mb-4">
         <div className="col-md-4">
           <div className="card text-white bg-primary">
@@ -47,7 +79,6 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
-
       <div className="row">
         <div className="col-12">
           <div className={`card border-${darkMode? "light" : "dark"}`}>
@@ -63,4 +94,5 @@ const DashboardPage = () => {
     </div>
   );
 };
+
 export default DashboardPage;

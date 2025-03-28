@@ -4,12 +4,19 @@ import AppointmentForm from '../components/AppointmentForm';
 import { doctorsAPI } from '../api/doctors';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { isAfter, isBefore } from 'date-fns';
 
 const AppointmentsPage = (props) => {
   const { darkMode } = useAuth();
   const [showNewAppointment, setShowNewAppointment] = useState(false);
-  const [setSelectedDoctorId] = useState(null);
+  const [, setSelectedDoctorId] = useState(null);
   const [doctors, setDoctors] = useState([]);
+  const [activeTab, setActiveTab] = useState('upcoming');
+  const [appointments, setAppointments] = useState([]);
+  const [filteredAppointments, setFilteredAppointments] = useState({
+    upcoming: [],
+    past: []
+  });
 
   useEffect(() => {
     /*eslint-disable */
@@ -25,6 +32,28 @@ const AppointmentsPage = (props) => {
     fetchDoctors();
   }, []);
 
+  useEffect(() => {
+    // Filter appointments when appointments or activeTab changes
+    if (appointments.length > 0) {
+      const now = new Date();
+      const upcomingAppts = appointments.filter(apt => 
+        (isAfter(new Date(apt.date), now) || 
+         (new Date(apt.date).toDateString() === now.toDateString())) && 
+        apt.status !== 'cancelled'
+      );
+
+      const pastAppts = appointments.filter(apt => 
+        isBefore(new Date(apt.date), now) && 
+        apt.status !== 'cancelled'
+      );
+
+      setFilteredAppointments({
+        upcoming: upcomingAppts,
+        past: pastAppts
+      });
+    }
+  }, [appointments]);
+
   const handleBookAppointment = (doctorId) => {
     setSelectedDoctorId(doctorId);
     setShowNewAppointment(true);
@@ -34,7 +63,11 @@ const AppointmentsPage = (props) => {
     setShowNewAppointment(false);
     setSelectedDoctorId(null);
   };
-  // console.log("Doctors: ", doctors);
+
+  const handleAppointmentsFetched = (fetchedAppointments) => {
+    setAppointments(fetchedAppointments);
+  };
+
   return (
     <div className={`container-fluid py-4 bg-${darkMode? "dark":"light"} text-${darkMode? "light":"dark"}`}>
       <div className="row mb-4">
@@ -79,15 +112,38 @@ const AppointmentsPage = (props) => {
             <div className={`card-header bg-${darkMode? "dark":"light"}`}>
               <ul className="nav nav-tabs card-header-tabs">
                 <li className="nav-item">
-                  <a className="nav-link active" href="#upcoming">Upcoming</a>
+                  <a 
+                    className={`nav-link ${activeTab === 'upcoming' ? 'active' : ''}`} 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveTab('upcoming');
+                    }}
+                  >
+                    Upcoming ({filteredAppointments.upcoming.length})
+                  </a>
                 </li>
                 <li className="nav-item">
-                  <a className="nav-link" href="#past">Past</a>
+                  <a 
+                    className={`nav-link ${activeTab === 'past' ? 'active' : ''}`} 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveTab('past');
+                    }}
+                  >
+                    Past ({filteredAppointments.past.length})
+                  </a>
                 </li>
               </ul>
             </div>
             <div className={`card-body bg-${darkMode? "dark":"light"} text-${darkMode? "light":"dark"}`}>
-              <AppointmentList doctors={doctors} onBookAppointment={handleBookAppointment} />
+              <AppointmentList 
+                doctors={doctors} 
+                onBookAppointment={handleBookAppointment}
+                onAppointmentsFetched={handleAppointmentsFetched}
+                filterStatus={activeTab === 'upcoming' ? 'upcoming' : 'past'}
+              />
             </div>
           </div>
         </div>

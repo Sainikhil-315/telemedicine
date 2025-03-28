@@ -6,15 +6,49 @@ const asyncHandler = require('../middleware/async');
 // @route   GET /api/notifications
 // @access  Private
 exports.getNotifications = asyncHandler(async (req, res, next) => {
-  const notifications = await Notification.find({ recipient: req.user.id })
+  // Extract query parameters
+  const { status } = req.query;
+
+  // Base query for the user's notifications
+  const baseQuery = { recipient: req.user.id };
+
+  // Modify query based on status
+  let query = baseQuery;
+  if (status === 'read') {
+    query.isRead = true;
+  } else if (status === 'unread') {
+    query.isRead = false;
+  }
+  // If no status is provided, it will fetch all notifications
+
+  // Fetch notifications
+  const notifications = await Notification.find(query)
     .sort({ createdAt: -1 })
     .populate({
-      path: 'sender',
+      path: 'user',
       select: 'name'
     });
 
+  // Count total notifications
+  const totalCount = await Notification.countDocuments(baseQuery);
+  
+  // Count read notifications
+  const readCount = await Notification.countDocuments({
+    ...baseQuery,
+    isRead: true
+  });
+
+  // Count unread notifications
+  const unreadCount = await Notification.countDocuments({
+    ...baseQuery,
+    isRead: false
+  });
+
   res.status(200).json({
     success: true,
+    totalCount,
+    readCount,
+    unreadCount,
     count: notifications.length,
     data: notifications
   });

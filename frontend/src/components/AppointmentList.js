@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { format, isAfter, isBefore } from 'date-fns';
 import { Clock, User, Video, MapPin } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashAlt, faEdit, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
@@ -7,7 +7,12 @@ import { appointmentsAPI } from '../api/appointments';
 import { Modal } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 
-const AppointmentList = ({ doctors, onBookAppointment }) => {
+const AppointmentList = ({
+  doctors,
+  onBookAppointment,
+  onAppointmentsFetched,
+  filterStatus
+}) => {
   const { darkMode } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,17 +24,38 @@ const AppointmentList = ({ doctors, onBookAppointment }) => {
   useEffect(() => {
     /*eslint-disable */
     fetchAppointments();
-  }, []);
+  }, [filterStatus]);
 
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      
+
       const response = await appointmentsAPI.getUserAppointments();
-      
-      // The appointments already include the doctor object, no need to map
-      setAppointments(response.data);
-      console.log("Fetched appointments:", response.data);
+      const fetchedAppointments = response.data;
+
+      // Filter appointments based on status
+      const now = new Date();
+      const filteredAppointments = fetchedAppointments.filter(apt => {
+        const aptDate = new Date(apt.date);
+
+        if (filterStatus === 'upcoming') {
+          return (isAfter(aptDate, now) || aptDate.toDateString() === now.toDateString())
+            && apt.status !== 'cancelled';
+        } else if (filterStatus === 'past') {
+          return isBefore(aptDate, now) && apt.status !== 'cancelled';
+        }
+
+        return true;
+      });
+
+      setAppointments(filteredAppointments);
+
+      // Callback to parent component with all appointments
+      if (onAppointmentsFetched) {
+        onAppointmentsFetched(fetchedAppointments);
+      }
+
+      console.log("Fetched appointments:", filteredAppointments);
     } catch (err) {
       console.error('Fetch error:', err);
       setError(err.message);
@@ -119,23 +145,27 @@ const AppointmentList = ({ doctors, onBookAppointment }) => {
   if (appointments.length === 0) {
     return (
       <div className="text-center p-4">
-        <p className="text-muted">No appointments found.</p>
+        <p className="text-muted">
+          {filterStatus === 'upcoming'
+            ? 'No upcoming appointments.'
+            : 'No past appointments.'}
+        </p>
       </div>
     );
   }
-  
+
   return (
     <>
       <div className={`container `}>
         {appointments.map((appointment) => (
           <div key={appointment._id} className="card mb-3 shadow-sm">
-            <div className={`card-body bg-${darkMode? "dark" : "light"}`}>
+            <div className={`card-body bg-${darkMode ? "dark" : "light"}`}>
               <div className="row align-items-center">
                 <div className="col-md-2 text-center">
                   <div className={`h4 mb-0 text-${darkMode ? 'light' : 'dark'}`}>{format(new Date(appointment.date), 'MMM dd')}</div>
                   <div className={`text-${darkMode ? 'light' : 'dark'}`}>{format(new Date(appointment.date), 'yyyy')}</div>
                 </div>
-                
+
                 <div className="col-md-4">
                   <h5 className={`d-flex align-items-center mb-1 text-${darkMode ? 'light' : 'dark'}`}>
                     <User className={`me-2 `} size={16} />
@@ -149,9 +179,9 @@ const AppointmentList = ({ doctors, onBookAppointment }) => {
                 </div>
 
                 <div className="col-md-3">
-                  <div className={`d-flex align-items-center mb-2 text-${darkMode? "light" : "dark"}`}>
+                  <div className={`d-flex align-items-center mb-2 text-${darkMode ? "light" : "dark"}`}>
                     <Video className="me-2" size={16} />
-                    <span className={`text-${darkMode? "light": "dark"}`}>
+                    <span className={`text-${darkMode ? "light" : "dark"}`}>
                       {appointment.type === 'video' ? 'Video Consultation' : 'In-person Visit'}
                     </span>
                   </div>
@@ -168,17 +198,17 @@ const AppointmentList = ({ doctors, onBookAppointment }) => {
                     <span className={`badge ${getStatusBadgeClass(appointment.status)} me-2`}>
                       {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                     </span>
-                    
+
                     {appointment.status === 'scheduled' && (
                       <div className="btn-group">
-                        <button 
+                        <button
                           className="btn btn-outline-primary btn-sm me-2"
                           onClick={() => handleEditClick(appointment)}
                         >
                           <FontAwesomeIcon icon={faEdit} className="me-1" />
                           Edit
                         </button>
-                        <button 
+                        <button
                           className="btn btn-outline-danger btn-sm"
                           onClick={() => handleCancelAppointment(appointment._id)}
                         >
@@ -187,9 +217,9 @@ const AppointmentList = ({ doctors, onBookAppointment }) => {
                         </button>
                       </div>
                     )}
-                    
+
                     {appointment.type === 'video' && appointment.videoLink && (
-                      <a 
+                      <a
                         href={appointment.videoLink}
                         className="btn btn-primary btn-sm ms-2"
                         target="_blank"
@@ -245,14 +275,14 @@ const AppointmentList = ({ doctors, onBookAppointment }) => {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <button 
+          <button
             className="btn btn-secondary"
             onClick={() => setShowEditModal(false)}
           >
             <FontAwesomeIcon icon={faTimesCircle} className="me-1" />
             Cancel
           </button>
-          <button 
+          <button
             className="btn btn-primary"
             onClick={handleUpdateAppointment}
           >
