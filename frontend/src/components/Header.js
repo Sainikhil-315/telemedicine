@@ -67,13 +67,6 @@ const Header = () => {
                 >
                   Chat & Assessment
                 </Nav.Link>
-                <Nav.Link
-                  as={Link}
-                  to="/recommend-bot"
-                  className={`${location.pathname === '/recommend-bot' ? 'active' : ''} ${darkMode ? "text-light" : "text-dark"}`}
-                >
-                  Symptom prediction
-                </Nav.Link>
               </>
             )}
           </Nav>

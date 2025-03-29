@@ -46,7 +46,8 @@ const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
     const dates = [];
     const today = new Date();
     
-    for (let i = 0; i < 14; i++) {
+    // Start from tomorrow (i=1) instead of today (i=0)
+    for (let i = 1; i < 15; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const dayOfWeek = date.getDay() || 7; // Convert Sunday from 0 to 7

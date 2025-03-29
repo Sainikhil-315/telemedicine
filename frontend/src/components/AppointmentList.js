@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { format, isAfter, isBefore } from 'date-fns';
+import { format, isAfter, isBefore, addHours } from 'date-fns';
 import { Clock, User, Video, MapPin } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrashAlt, faEdit, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { faTrashAlt, faEdit, faCheckCircle, faTimesCircle, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { appointmentsAPI } from '../api/appointments';
 import { Modal } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
@@ -11,7 +11,8 @@ const AppointmentList = ({
   doctors,
   onBookAppointment,
   onAppointmentsFetched,
-  filterStatus
+  filterStatus,
+  limit
 }) => {
   const { darkMode } = useAuth();
   const [appointments, setAppointments] = useState([]);
@@ -31,10 +32,20 @@ const AppointmentList = ({
       setLoading(true);
 
       const response = await appointmentsAPI.getUserAppointments();
-      const fetchedAppointments = response.data;
+      let fetchedAppointments = response.data;
+
+      // Check for completed appointments (past appointments that aren't cancelled)
+      const now = new Date();
+      fetchedAppointments = fetchedAppointments.map(apt => {
+        const aptDate = new Date(apt.date);
+        // Mark past appointments as completed if they weren't cancelled
+        if (isBefore(aptDate, now) && apt.status !== 'cancelled') {
+          return { ...apt, status: 'completed' };
+        }
+        return apt;
+      });
 
       // Filter appointments based on status
-      const now = new Date();
       const filteredAppointments = fetchedAppointments.filter(apt => {
         const aptDate = new Date(apt.date);
 
@@ -48,14 +59,17 @@ const AppointmentList = ({
         return true;
       });
 
-      setAppointments(filteredAppointments);
+      // Apply limit if provided
+      const limitedAppointments = limit ? filteredAppointments.slice(0, limit) : filteredAppointments;
+      
+      setAppointments(limitedAppointments);
 
       // Callback to parent component with all appointments
       if (onAppointmentsFetched) {
         onAppointmentsFetched(fetchedAppointments);
       }
 
-      console.log("Fetched appointments:", filteredAppointments);
+      console.log("Fetched appointments:", limitedAppointments);
     } catch (err) {
       console.error('Fetch error:', err);
       setError(err.message);
@@ -64,14 +78,50 @@ const AppointmentList = ({
     }
   };
 
+  // Check if appointment is within 24 hours
+  const isWithin24Hours = (appointment) => {
+    const now = new Date();
+    const appointmentDateTime = new Date(`${appointment.date}T${appointment.startTime}`);
+    
+    // Return true if appointment is less than 24 hours away
+    return isBefore(appointmentDateTime, addHours(now, 24));
+  };
+
   const handleCancelAppointment = async (appointmentId) => {
     try {
+      // Get the appointment to check timing
+      const appointment = appointments.find(apt => apt._id === appointmentId);
+      
+      // Check if appointment is within 24 hours
+      if (appointment && isWithin24Hours(appointment)) {
+        alert('Cannot cancel appointments within 24 hours of scheduled time');
+        return;
+      }
+      
       await appointmentsAPI.cancelAppointment(appointmentId);
-      setAppointments(prevAppointments =>
-        prevAppointments.map(apt =>
-          apt._id === appointmentId ? { ...apt, status: 'cancelled' } : apt
-        )
+      const updatedAppointments = appointments.map(apt =>
+        apt._id === appointmentId ? { ...apt, status: 'cancelled' } : apt
       );
+      
+      setAppointments(updatedAppointments);
+      
+      // Notify parent component of status change
+      if (onAppointmentsFetched) {
+        // Fetch all appointments again to update stats
+        const response = await appointmentsAPI.getUserAppointments();
+        const allAppointments = response.data.map(apt => {
+          const aptDate = new Date(apt.date);
+          const now = new Date();
+          // Mark past appointments as completed
+          if (isBefore(aptDate, now) && apt.status !== 'cancelled') {
+            return { ...apt, status: 'completed' };
+          }
+          return apt;
+        });
+        
+        onAppointmentsFetched(allAppointments);
+      }
+      
       // Show success toast or message
       alert('Appointment cancelled successfully');
     } catch (err) {
@@ -81,6 +131,12 @@ const AppointmentList = ({
   };
 
   const handleEditClick = (appointment) => {
+    // Check if appointment is within 24 hours
+    if (isWithin24Hours(appointment)) {
+      alert('Cannot edit appointments within 24 hours of scheduled time');
+      return;
+    }
+    
     setSelectedAppointment(appointment);
     setEditType(appointment.type);
     setShowEditModal(true);
@@ -97,11 +153,28 @@ const AppointmentList = ({
       });
 
       // Update local state
-      setAppointments(prevAppointments =>
-        prevAppointments.map(apt =>
-          apt._id === selectedAppointment._id ? { ...apt, type: editType } : apt
-        )
+      const updatedAppointments = appointments.map(apt =>
+        apt._id === selectedAppointment._id ? { ...apt, type: editType } : apt
       );
+      
+      setAppointments(updatedAppointments);
+      
+      // Notify parent component of changes
+      if (onAppointmentsFetched) {
+        // Fetch all appointments again to update stats
+        const response = await appointmentsAPI.getUserAppointments();
+        const allAppointments = response.data.map(apt => {
+          const aptDate = new Date(apt.date);
+          const now = new Date();
+          // Mark past appointments as completed
+          if (isBefore(aptDate, now) && apt.status !== 'cancelled') {
+            return { ...apt, status: 'completed' };
+          }
+          return apt;
+        });
+        
+        onAppointmentsFetched(allAppointments);
+      }
 
       setShowEditModal(false);
       alert('Appointment updated successfully');
@@ -116,6 +189,8 @@ const AppointmentList = ({
       case 'scheduled':
         return 'bg-primary';
       case 'confirmed':
+        return 'bg-success';
+      case 'completed':
         return 'bg-success';
       case 'cancelled':
         return 'bg-danger';
@@ -148,7 +223,9 @@ const AppointmentList = ({
         <p className="text-muted">
           {filterStatus === 'upcoming'
             ? 'No upcoming appointments.'
-            : 'No past appointments.'}
+            : filterStatus === 'past'
+              ? 'No past appointments.'
+              : 'No appointments.'}
         </p>
       </div>
     );
@@ -157,83 +234,94 @@ const AppointmentList = ({
   return (
     <>
       <div className={`container `}>
-        {appointments.map((appointment) => (
-          <div key={appointment._id} className="card mb-3 shadow-sm">
-            <div className={`card-body bg-${darkMode ? "dark" : "light"}`}>
-              <div className="row align-items-center">
-                <div className="col-md-2 text-center">
-                  <div className={`h4 mb-0 text-${darkMode ? 'light' : 'dark'}`}>{format(new Date(appointment.date), 'MMM dd')}</div>
-                  <div className={`text-${darkMode ? 'light' : 'dark'}`}>{format(new Date(appointment.date), 'yyyy')}</div>
-                </div>
-
-                <div className="col-md-4">
-                  <h5 className={`d-flex align-items-center mb-1 text-${darkMode ? 'light' : 'dark'}`}>
-                    <User className={`me-2 `} size={16} />
-                    Dr. {appointment.doctor && appointment.doctor.name ? appointment.doctor.name : 'Unknown'}
-                  </h5>
-                  <p className={`mb-0 text-${darkMode ? 'light' : 'dark'}`}>{appointment.doctor && appointment.doctor.specialty ? appointment.doctor.specialty : 'Specialty not available'}</p>
-                  <div className={`d-flex align-items-center text-${darkMode ? 'light' : 'dark'} mt-1`}>
-                    <Clock className="me-1" size={14} />
-                    {appointment.startTime}
+        {appointments.map((appointment) => {
+          const isNear24Hour = isWithin24Hours(appointment);
+          return (
+            <div key={appointment._id} className="card mb-3 shadow-sm">
+              <div className={`card-body bg-${darkMode ? "dark" : "light"}`}>
+                <div className="row align-items-center">
+                  <div className="col-md-2 text-center">
+                    <div className={`h4 mb-0 text-${darkMode ? 'light' : 'dark'}`}>{format(new Date(appointment.date), 'MMM dd')}</div>
+                    <div className={`text-${darkMode ? 'light' : 'dark'}`}>{format(new Date(appointment.date), 'yyyy')}</div>
                   </div>
-                </div>
 
-                <div className="col-md-3">
-                  <div className={`d-flex align-items-center mb-2 text-${darkMode ? "light" : "dark"}`}>
-                    <Video className="me-2" size={16} />
-                    <span className={`text-${darkMode ? "light" : "dark"}`}>
-                      {appointment.type === 'video' ? 'Video Consultation' : 'In-person Visit'}
-                    </span>
-                  </div>
-                  {appointment.location && (
-                    <div className="d-flex align-items-center">
-                      <MapPin className="me-2" size={16} />
-                      <span className="text-muted">{appointment.location}</span>
+                  <div className="col-md-4">
+                    <h5 className={`d-flex align-items-center mb-1 text-${darkMode ? 'light' : 'dark'}`}>
+                      <User className={`me-2 `} size={16} />
+                      Dr. {appointment.doctor && appointment.doctor.name ? appointment.doctor.name : 'Unknown'}
+                    </h5>
+                    <p className={`mb-0 text-${darkMode ? 'light' : 'dark'}`}>{appointment.doctor && appointment.doctor.specialty ? appointment.doctor.specialty : 'Specialty not available'}</p>
+                    <div className={`d-flex align-items-center text-${darkMode ? 'light' : 'dark'} mt-1`}>
+                      <Clock className="me-1" size={14} />
+                      {appointment.startTime}
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <div className="col-md-3">
-                  <div className="d-flex justify-content-end align-items-center">
-                    <span className={`badge ${getStatusBadgeClass(appointment.status)} me-2`}>
-                      {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                    </span>
-
-                    {appointment.status === 'scheduled' && (
-                      <div className="btn-group">
-                        <button
-                          className="btn btn-outline-primary btn-sm me-2"
-                          onClick={() => handleEditClick(appointment)}
-                        >
-                          <FontAwesomeIcon icon={faEdit} className="me-1" />
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-outline-danger btn-sm"
-                          onClick={() => handleCancelAppointment(appointment._id)}
-                        >
-                          <FontAwesomeIcon icon={faTrashAlt} className="me-1" />
-                          Cancel
-                        </button>
+                  <div className="col-md-3">
+                    <div className={`d-flex align-items-center mb-2 text-${darkMode ? "light" : "dark"}`}>
+                      <Video className="me-2" size={16} />
+                      <span className={`text-${darkMode ? "light" : "dark"}`}>
+                        {appointment.type === 'video' ? 'Video Consultation' : 'In-person Visit'}
+                      </span>
+                    </div>
+                    {appointment.location && (
+                      <div className="d-flex align-items-center">
+                        <MapPin className="me-2" size={16} />
+                        <span className="text-muted">{appointment.location}</span>
                       </div>
                     )}
+                  </div>
 
-                    {appointment.type === 'video' && appointment.videoLink && (
-                      <a
-                        href={appointment.videoLink}
-                        className="btn btn-primary btn-sm ms-2"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Join
-                      </a>
-                    )}
+                  <div className="col-md-3">
+                    <div className="d-flex justify-content-end align-items-center">
+                      <span className={`badge ${getStatusBadgeClass(appointment.status)} me-2`}>
+                        {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                      </span>
+
+                      {appointment.status === 'scheduled' && (
+                        <div className="btn-group">
+                          {isNear24Hour && (
+                            <div className="me-2 text-warning d-flex align-items-center">
+                              <FontAwesomeIcon icon={faInfoCircle} className="me-1" />
+                              <small>24h window</small>
+                            </div>
+                          )}
+                          <button
+                            className="btn btn-outline-primary btn-sm me-2"
+                            onClick={() => handleEditClick(appointment)}
+                            disabled={isNear24Hour}
+                          >
+                            <FontAwesomeIcon icon={faEdit} className="me-1" />
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => handleCancelAppointment(appointment._id)}
+                            disabled={isNear24Hour}
+                          >
+                            <FontAwesomeIcon icon={faTrashAlt} className="me-1" />
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+
+                      {appointment.type === 'video' && appointment.videoLink && appointment.status !== 'completed' && appointment.status !== 'cancelled' && (
+                        <a
+                          href={appointment.videoLink}
+                          className="btn btn-primary btn-sm ms-2"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Join
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Edit Modal */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import AppointmentList from '../components/AppointmentList';
 import { appointmentsAPI } from '../api/appointments';
@@ -11,7 +11,28 @@ const DashboardPage = () => {
     completedAppointments: 0,
     notifications: 0
   });
-  const [ , setAppointments] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+
+  // Create a callback function to handle appointments updates
+  const handleAppointmentsFetched = useCallback((fetchedAppointments) => {
+    setAppointments(fetchedAppointments);
+    
+    // Recalculate stats based on the updated appointments
+    const now = new Date();
+    const upcomingCount = fetchedAppointments.filter(apt => 
+      isAfter(new Date(apt.date), now) && apt.status !== 'cancelled'
+    ).length;
+
+    const completedCount = fetchedAppointments.filter(apt => 
+      isBefore(new Date(apt.date), now) && apt.status !== 'cancelled'
+    ).length;
+
+    setStats({
+      upcomingAppointments: upcomingCount,
+      completedAppointments: completedCount,
+      notifications: 0 // You might want to fetch this from a notifications API
+    });
+  }, []);
 
   useEffect(() => {
     const fetchAppointmentsAndCalculateStats = async () => {
@@ -19,27 +40,19 @@ const DashboardPage = () => {
         // Fetch all user appointments
         const response = await appointmentsAPI.getUserAppointments();
         const fetchedAppointments = response.data;
-        setAppointments(fetchedAppointments);
-
-        // Calculate stats based on current date
+        
+        // Process appointments to mark completed ones
         const now = new Date();
-        const upcomingCount = fetchedAppointments.filter(apt => 
-          // Consider an appointment upcoming if its date is in the future 
-          // and it's not cancelled
-          isAfter(new Date(apt.date), now) && apt.status !== 'cancelled'
-        ).length;
-
-        const completedCount = fetchedAppointments.filter(apt => 
-          // Consider an appointment completed if its date is in the past 
-          // and it's not cancelled
-          isBefore(new Date(apt.date), now) && apt.status !== 'cancelled'
-        ).length;
-
-        setStats({
-          upcomingAppointments: upcomingCount,
-          completedAppointments: completedCount,
-          notifications: 0 // You might want to fetch this from a notifications API
+        const processedAppointments = fetchedAppointments.map(apt => {
+          const aptDate = new Date(apt.date);
+          if (isBefore(aptDate, now) && apt.status !== 'cancelled') {
+            return { ...apt, status: 'completed' };
+          }
+          return apt;
         });
+        
+        // Update state and calculate stats
+        handleAppointmentsFetched(processedAppointments);
       } catch (error) {
         console.error('Error fetching appointments:', error);
         // Optionally set an error state or show a toast
@@ -47,7 +60,7 @@ const DashboardPage = () => {
     };
 
     fetchAppointmentsAndCalculateStats();
-  }, []);
+  }, [handleAppointmentsFetched]);
 
   return (
     <div className={`container-fluid py-4 bg-${darkMode ? 'dark' : 'light'}`}>
@@ -86,7 +99,10 @@ const DashboardPage = () => {
               <h5 className={`card-title mb-0 text-${darkMode? "light" : "dark"}`}>Recent Appointments</h5>
             </div>
             <div className={`card-body bg-${darkMode? "dark" : "light"}`}>
-              <AppointmentList limit={5} />
+              <AppointmentList 
+                limit={5} 
+                onAppointmentsFetched={handleAppointmentsFetched}
+              />
             </div>
           </div>
         </div>

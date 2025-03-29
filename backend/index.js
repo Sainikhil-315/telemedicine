@@ -10,7 +10,6 @@ const mongoSanitize = require('express-mongo-sanitize');
 const connectDB = require('./db/connection');
 const errorHandler = require('./middleware/errorHandler');
 const routes = require('./routes');
-const recommendBotRoutes = require("./routes/api/recommendBot");
 
 // Load env vars
 dotenv.config();
@@ -90,7 +89,6 @@ app.get('/', (req, res) => {
 // Mount routes
 app.use('/', routes);
 app.use("/api/symptom", require("./routes/api/symptom"));
-app.use("/api/recommend-bot", recommendBotRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

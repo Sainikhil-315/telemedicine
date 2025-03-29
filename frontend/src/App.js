@@ -85,11 +85,6 @@ function App() {
                 <Footer />
               </ProtectedRoute>
             } />
-            <Route path="/recommend-bot" element={
-              <ProtectedRoute>
-                <RecommendationBot />
-              </ProtectedRoute>
-            } />
           </Routes>
         </main>
       </div>
