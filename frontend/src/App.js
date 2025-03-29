@@ -18,7 +18,6 @@ import DoctorsPage from './pages/DoctorsPage';
 import ProfilePage from './pages/ProfilePage';
 import AppointmentForm from './components/AppointmentForm';
 import AppointmentsPage from './pages/AppointmentsPage'
-import RecommendationBot from './pages/recommendationBot';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -38,6 +37,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function App() {
+  const { darkMode } = useAuth();
   const [ doctorId, setDoctorId ] = useState(null);
   const handleDoctorId = (doctorId) => {
     setDoctorId(doctorId);
@@ -45,7 +45,7 @@ function App() {
   }
   return (
     <Router>
-      <div className="d-flex flex-column min-vh-100">
+      <div className={`d-flex flex-column min-vh-100 ${darkMode? "bg-dark" : "bg-white"}`}>
         <Header />
         <main className="main-content flex-grow-1">
           <Routes>

@@ -1,11 +1,16 @@
 import React from 'react';
 import { Row, Col, Card, Button, Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { getThemeClasses } from '../utils/themeUtils';
 
 const DoctorList = ({ doctors, loading, onDoctorSelect }) => {
+  const { darkMode } = useAuth();
+  const theme = getThemeClasses(darkMode);
+
   if (loading) {
     return (
-      <div className="text-center py-5">
+      <div className={`text-center py-5 ${theme.text}`}>
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -15,9 +20,9 @@ const DoctorList = ({ doctors, loading, onDoctorSelect }) => {
 
   if (!doctors.length) {
     return (
-      <div className="text-center py-5">
+      <div className={`text-center py-5 ${theme.text}`}>
         <h4>No doctors found matching your criteria</h4>
-        <p className="text-muted">Try adjusting your search or filters</p>
+        <p className={darkMode ? 'text-secondary' : 'text-muted'}>Try adjusting your search or filters</p>
       </div>
     );
   }
@@ -28,7 +33,7 @@ const DoctorList = ({ doctors, loading, onDoctorSelect }) => {
       stars.push(
         <i
           key={i}
-          className={`fas fa-star ${i <= rating ? 'text-warning' : 'text-muted'}`}
+          className={`fas fa-star ${i <= rating ? 'text-warning' : darkMode ? 'text-secondary' : 'text-muted'}`}
         ></i>
       );
     }
@@ -39,7 +44,7 @@ const DoctorList = ({ doctors, loading, onDoctorSelect }) => {
     <Row className="g-4">
       {doctors.map((doctor) => (
         <Col key={doctor._id} xs={12} md={6} lg={4}>
-          <Card className="h-100 shadow-sm hover-shadow">
+          <Card className={`h-100 shadow-sm hover-shadow ${darkMode ? 'bg-dark text-light border-secondary' : ''}`}>
             <Card.Body>
               <div className="d-flex mb-3">
                 <div className="flex-shrink-0">
@@ -52,10 +57,10 @@ const DoctorList = ({ doctors, loading, onDoctorSelect }) => {
                 </div>
                 <div className="flex-grow-1 ms-3">
                   <h5 className="mb-1">{doctor.name}</h5>
-                  <p className="mb-1 text-muted">{doctor.specialty}</p>
+                  <p className={`mb-1 ${darkMode ? 'text-secondary' : 'text-muted'}`}>{doctor.specialty}</p>
                   <div className="mb-1">
                     {renderStarRating(doctor.rating)}
-                    <span className="ms-2 text-muted">({doctor.reviewCount} reviews)</span>
+                    <span className={`ms-2 ${darkMode ? 'text-secondary' : 'text-muted'}`}>({doctor.reviewCount} reviews)</span>
                   </div>
                 </div>
               </div>
@@ -87,16 +92,13 @@ const DoctorList = ({ doctors, loading, onDoctorSelect }) => {
               <div className="d-grid gap-2">
                 <Button
                   variant="primary"
-                  onClick={() => {
-                    onDoctorSelect(doctor._id)
-                  }
-                  }
+                  onClick={() => onDoctorSelect(doctor._id)}
                 >
                   Book Appointment
                 </Button>
                 <Link
                   to={`/doctors/${doctor._id}`}
-                  className="btn btn-outline-secondary"
+                  className={`btn ${darkMode ? 'btn-outline-light' : 'btn-outline-secondary'}`}
                 >
                   View Profile
                 </Link>

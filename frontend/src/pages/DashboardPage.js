@@ -3,9 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import AppointmentList from '../components/AppointmentList';
 import { appointmentsAPI } from '../api/appointments';
 import { isAfter, isBefore } from 'date-fns';
+import { getThemeClasses } from '../utils/themeUtils';
 
 const DashboardPage = () => {
   const { user, darkMode } = useAuth();
+  const theme = getThemeClasses(darkMode);
+  
   const [stats, setStats] = useState({
     upcomingAppointments: 0,
     completedAppointments: 0,
@@ -63,8 +66,8 @@ const DashboardPage = () => {
   }, [handleAppointmentsFetched]);
 
   return (
-    <div className={`container-fluid py-4 bg-${darkMode ? 'dark' : 'light'}`}>
-      <h2 className={`mb-4 text-${darkMode? "light":"dark"}`}>Welcome back, {user?.name}</h2>
+    <div className={`container-fluid py-4 ${theme.bgMain}`}>
+      <h2 className={`mb-4 ${theme.text}`}>Welcome back, {user?.name}</h2>
      
       <div className="row mb-4">
         <div className="col-md-4">
@@ -94,11 +97,11 @@ const DashboardPage = () => {
       </div>
       <div className="row">
         <div className="col-12">
-          <div className={`card border-${darkMode? "light" : "dark"}`}>
-            <div className={`card-header bg-${darkMode? "dark" : "light"}`}>
-              <h5 className={`card-title mb-0 text-${darkMode? "light" : "dark"}`}>Recent Appointments</h5>
+          <div className={`${theme.card}`}>
+            <div className={theme.cardHeader}>
+              <h5 className={`card-title mb-0 ${theme.text}`}>Recent Appointments</h5>
             </div>
-            <div className={`card-body bg-${darkMode? "dark" : "light"}`}>
+            <div className={theme.cardBody}>
               <AppointmentList 
                 limit={5} 
                 onAppointmentsFetched={handleAppointmentsFetched}

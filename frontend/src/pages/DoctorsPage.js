@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, InputGroup } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import DoctorList from '../components/DoctorsList';
-import { doctorsAPI } from '../api/doctors'; // Import getAllDoctors
+import { doctorsAPI } from '../api/doctors';
+import { useAuth } from '../context/AuthContext';
+import { getThemeClasses } from '../utils/themeUtils';
 
-const DoctorsPage = ({handleDoctorId}) => {
+const DoctorsPage = ({ handleDoctorId }) => {
+  const { darkMode } = useAuth();
+  const theme = getThemeClasses(darkMode);
+  
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,13 +34,13 @@ const DoctorsPage = ({handleDoctorId}) => {
       let response;
       if (!filters.searchTerm && !filters.specialty) {
         response = await doctorsAPI.getAllDoctors();
-        console.log("response if no filters ",response);
+        console.log("response if no filters ", response);
       } else {
         response = await doctorsAPI.searchDoctors({
           name: filters.searchTerm,
           specialty: filters.specialty,
           // sortBy: filters.sortBy
-        },console.log("response if filter applied: ",response));
+        }, console.log("response if filter applied: ", response));
       }
       setDoctors(response.data || []);
       console.log("Doctors in response: ", doctors)
@@ -63,14 +68,14 @@ const DoctorsPage = ({handleDoctorId}) => {
   };
 
   return (
-    <Container fluid className="py-4">
+    <Container fluid className={`py-4 ${theme.bgMain}`}>
       <Row className="mb-4">
         <Col>
-          <h2 className="mb-4">Find a Doctor</h2>
+          <h2 className={`mb-4 ${theme.text}`}>Find a Doctor</h2>
           <Row className="g-3">
             <Col md={6}>
               <InputGroup>
-                <InputGroup.Text>
+                <InputGroup.Text className={darkMode ? 'bg-dark border-secondary text-light' : ''}>
                   <i className="fas fa-search"></i>
                 </InputGroup.Text>
                 <Form.Control
@@ -79,6 +84,7 @@ const DoctorsPage = ({handleDoctorId}) => {
                   placeholder="Search doctors by name..."
                   value={filters.searchTerm}
                   onChange={handleFilterChange}
+                  className={darkMode ? 'bg-dark border-secondary text-light' : ''}
                 />
               </InputGroup>
             </Col>
@@ -88,6 +94,7 @@ const DoctorsPage = ({handleDoctorId}) => {
                 name="specialty"
                 value={filters.specialty}
                 onChange={handleFilterChange}
+                className={darkMode ? 'bg-dark border-secondary text-light' : ''}
               >
                 <option value="">All Specialties</option>
                 <option value="General Physician">General Physician</option>
@@ -105,6 +112,7 @@ const DoctorsPage = ({handleDoctorId}) => {
                 name="sortBy"
                 value={filters.sortBy}
                 onChange={handleFilterChange}
+                className={darkMode ? 'bg-dark border-secondary text-light' : ''}
               >
                 <option value="rating">Highest Rated</option>
                 <option value="experience">Most Experienced</option>
@@ -117,7 +125,7 @@ const DoctorsPage = ({handleDoctorId}) => {
       </Row>
 
       {error && (
-        <div className="alert alert-danger" role="alert">
+        <div className={theme.alertDanger} role="alert">
           {error}
         </div>
       )}

@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, AlertCircle, UserRound, Stethoscope, IndianRupee } from 'lucide-react';
 import { doctorsAPI } from '../api/doctors';
 import { appointmentsAPI } from '../api/appointments';
 import { useAuth } from '../context/AuthContext';
+import { getThemeClasses } from '../utils/themeUtils';
 
 const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
   const { darkMode } = useAuth();
+  const theme = getThemeClasses(darkMode);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -164,31 +167,31 @@ const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
   };
 
   return (
-    <div className="container py-4">
-      <form onSubmit={handleSubmit} className="card">
-        <div className="card-body">
+    <div className={`container py-4 ${theme.bgMain} ${theme.text}`}>
+      <form onSubmit={handleSubmit} className={theme.card}>
+        <div className={theme.cardBody}>
           {error && (
-            <div className="alert alert-danger d-flex align-items-center" role="alert">
+            <div className={theme.alertDanger} role="alert">
               <AlertCircle className="me-2" />
               <span>{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="alert alert-success" role="alert">
+            <div className={theme.alertSuccess} role="alert">
               Appointment scheduled successfully!
             </div>
           )}
 
           {doctorDetails && (
-            <div className="card mb-4">
-              <div className="card-header">
+            <div className={`${theme.card} mb-4`}>
+              <div className={theme.cardHeader}>
                 <h3 className="mb-0 d-flex align-items-center">
                   <UserRound className="me-2" />
                   Doctor Details
                 </h3>
               </div>
-              <div className="card-body">
+              <div className={theme.cardBody}>
                 <div className="d-flex mb-2">
                   <Stethoscope className="me-2" />
                   <span className="fw-bold">Dr. {doctorDetails.name}</span>
@@ -213,7 +216,7 @@ const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
                   Select Date
                 </label>
                 <select
-                  className="form-select"
+                  className={theme.formSelect}
                   value={selectedDate}
                   onChange={(e) => handleDateChange(e.target.value)}
                   required
@@ -242,7 +245,7 @@ const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
                   Select Time Slot
                 </label>
                 <select
-                  className="form-select"
+                  className={theme.formSelect}
                   value={formData.startTime && formData.endTime ? `${formData.startTime}-${formData.endTime}` : ''}
                   onChange={(e) => handleTimeSlotSelect(e.target.value)}
                   required
@@ -276,7 +279,7 @@ const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
                     value="video"
                     checked={formData.type === 'video'}
                     onChange={(e) => handleInputChange('type', e.target.value)}
-                    className="form-check-input"
+                    className={theme.formCheckInput}
                     required
                   />
                   <label className="form-check-label" htmlFor="video">
@@ -293,7 +296,7 @@ const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
                     value="in-person"
                     checked={formData.type === 'in-person'}
                     onChange={(e) => handleInputChange('type', e.target.value)}
-                    className="form-check-input"
+                    className={theme.formCheckInput}
                   />
                   <label className="form-check-label" htmlFor="in-person">
                     In-Person Visit
@@ -306,7 +309,7 @@ const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
           <div className="mb-4">
             <label className="form-label">Symptoms</label>
             <textarea
-              className="form-control"
+              className={theme.formControl}
               value={formData.symptoms}
               onChange={(e) => handleInputChange('symptoms', e.target.value)}
               placeholder="Please describe your symptoms in detail"
@@ -318,7 +321,7 @@ const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
           <div className="mb-4">
             <label className="form-label">Additional Notes</label>
             <textarea
-              className="form-control"
+              className={theme.formControl}
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               placeholder="Any additional information you'd like to share"
@@ -331,7 +334,7 @@ const AppointmentForm = ({ doctorId, onSubmit, onCancel }) => {
               type="button"
               onClick={onCancel}
               disabled={loading}
-              className="btn btn-secondary"
+              className={`btn ${theme.btnSecondary}`}
             >
               Cancel
             </button>
